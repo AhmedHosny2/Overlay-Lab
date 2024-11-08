@@ -6,10 +6,14 @@ namespace Portal.Pages;
 public class IndexModel : PageModel
 {
     private readonly ILogger<IndexModel> _logger;
-
+    public string? Name { get; set; }
     public IndexModel(ILogger<IndexModel> logger)
     {
         _logger = logger;
+    }
+    public void OnPost()
+    {
+        Name = Request.Form["Name"];
     }
 
     public void OnGet()
