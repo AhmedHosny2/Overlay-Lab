@@ -21,13 +21,6 @@ public class IndexModel : PageModel
     {
         _logger = logger;
     }
-    public async Task OnPostAsync()
-    {
-        await MainAsync();
-
-
-
-    }
 
     // connect to our docker 
     public DockerClient ConnectToDocker()
@@ -230,7 +223,7 @@ public class IndexModel : PageModel
             var CreatedContainer = await CreateContainer(client, ImageName);
             await ListContainers(client);
             await RunContainer(client, CreatedContainer);
-            await ExecuteCommand(client, CreatedContainer, new List<string> { "sh", "-c", "mkdir /root/test && echo 'Hello, World!' > /root/test/hello.txt && ls /root/test" });
+            // await ExecuteCommand(client, CreatedContainer, new List<string> { "sh", "-c", "mkdir /root/test && echo 'Hello, World!' > /root/test/hello.txt && ls /root/test" });
 
         }
         catch (Exception e)
@@ -241,6 +234,17 @@ public class IndexModel : PageModel
     }
 
 
+
+    public async Task OnPostAsync()
+    {
+        await MainAsync();
+
+    }
+
+    public async Task OnGetAsync()
+    {
+        await ListContainers(ConnectToDocker());
+    }
 
 
 
@@ -450,10 +454,6 @@ public class IndexModel : PageModel
 
     // }
 
-    // // call the mainAsync method
-    public async Task OnGetAsync()
-    {
-    }
 
 
 }
