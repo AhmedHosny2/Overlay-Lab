@@ -3,6 +3,12 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Docker.DotNet;
 using Docker.DotNet.Models;
 using Portal.Models;
+using System.Text;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Threading.Tasks;
+
 
 namespace Portal.Pages;
 
@@ -15,28 +21,51 @@ public class IndexModel : PageModel
     {
         _logger = logger;
     }
-    public async Task OnPostAsync()    {
+    public async Task OnPostAsync()
+    {
         await MainAsync();
-       
+
 
 
     }
+
+    // run continaer and exec command
+ 
     public async Task MainAsync()
     {
+        var CreatedContainer = new CreateContainerResponse();
+        string ImageName = "alpine";
+        // set container properties
+        var config = new Config
+        {
+            Image = ImageName,         // Use the desired image
+            Tty = true,                      // Allocate a pseudo-TTY
+            OpenStdin = true,                // Keep stdin open for interaction
+            AttachStdin = true,              // Attach stdin to the container
+            AttachStdout = true,             // Attach stdout to capture output
+            AttachStderr = true,             // Attach stderr to capture errors
+                           Cmd =  new List<string> { "sleep", "infinity" } // Keeps the container running
+
+        };
+
+        var createContainerParameters = new CreateContainerParameters(config);
+
+
+
         // create a new DockerClient object 
         DockerClient client = new DockerClientConfiguration(
       new Uri("unix:///var/run/docker.sock")) // todo what is this ? 
        .CreateClient();
-        // get user's images and check if he got hello-world image
+        // get user's images and check if he got the image
         IList<ImagesListResponse> images = await client.Images.ListImagesAsync(new ImagesListParameters()
         {
-            // get hello-world image
+            // get the image
             Filters = new Dictionary<string, IDictionary<string, bool>>()
             {
                 {
                     "reference", new Dictionary<string, bool>()
                     {
-                        { "hello-world", true }
+                        { ImageName, true }
                     }
                 }
             }
@@ -45,13 +74,13 @@ public class IndexModel : PageModel
         if (images.Count == 0)
         {
             // pull it first 
-            Console.WriteLine("Pulling hello-world image");
+            Console.WriteLine("Pulling image ${ImageName}");
             try
             {
                 await client.Images.CreateImageAsync(
             new ImagesCreateParameters
             {
-                FromImage = "hello-world",
+                FromImage = ImageName,
                 Tag = "latest",
             },
             null, // TODO: add your auth details 
@@ -69,18 +98,15 @@ public class IndexModel : PageModel
         {
 
             Console.WriteLine("Image found: ");
-            // Create docker container hello-world
-            Console.WriteLine("Creating container hello-world");
+            // Create docker container from the image
+            Console.WriteLine("Creating container ${ImageName}");
             try
             {
-                await client.Containers.CreateContainerAsync(new CreateContainerParameters()
-                {
-                    Image = "hello-world",
-                    HostConfig = new HostConfig()
-                    {
-                        DNS = new[] { "8.8.8.8", "8.8.4.4" }
-                    }
-                });
+
+
+
+
+                CreatedContainer = await client.Containers.CreateContainerAsync(createContainerParameters);
                 Console.WriteLine("Container created successfully");
             }
             catch (Exception e)
@@ -131,7 +157,7 @@ public class IndexModel : PageModel
                     new ServerInstance
                     {
                         InstanceId = container.ID.Substring(0, 5),
-                        
+
                         ServerType = container.Image.Split("@sha256")[0],
                         Status = container.Status,
                         IpAddress = "X.X.X.X", // todo double chick 
@@ -150,6 +176,63 @@ public class IndexModel : PageModel
             Console.WriteLine("Error: " + e.Message);
         }
 
+        // run container
+        Console.WriteLine("Running container");
+        try
+        {
+
+
+            await client.Containers.StartContainerAsync(
+                CreatedContainer.ID, new ContainerStartParameters());
+
+            
+            Console.WriteLine("Container started successfully");
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine("Error: " + e.Message);
+        }
+        try
+        {
+            // Create the exec instance with the specified command
+            var execCreateResponse = await client.Exec.ExecCreateContainerAsync(CreatedContainer.ID, new ContainerExecCreateParameters
+            {
+                AttachStdin = true,
+                AttachStdout = true,
+                AttachStderr = true,
+                Tty = true,
+                Cmd = [ 
+                        "echo 'Hello World' > /tmp/hello.txt"
+                     ] // Executes the command in a Bash shell
+            });
+
+            // Start the exec instance and attach to the output
+            using (var stream = await client.Exec.StartAndAttachContainerExecAsync(execCreateResponse.ID, false))
+            {
+                var outputBuilder = new StringBuilder();
+                var buffer = new byte[4096];
+
+                // Read the output synchronously
+                while (true)
+                {
+                    var count = await stream.ReadOutputAsync(buffer, 0, buffer.Length, CancellationToken.None);
+                    if (count.EOF)
+                    {
+                        break;
+                    }
+
+                    outputBuilder.Append(Encoding.UTF8.GetString(buffer, 0, count.Count));
+                }
+
+                // Print the output to the console
+                Console.WriteLine("Command output:");
+                Console.WriteLine(outputBuilder.ToString());
+            }
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine("Error: " + e.Message);
+        }
     }
 
     // call the mainAsync method
