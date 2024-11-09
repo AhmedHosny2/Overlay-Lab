@@ -30,7 +30,7 @@ public class IndexModel : PageModel
     }
 
     // run continaer and exec command
- 
+
     public async Task MainAsync()
     {
         var CreatedContainer = new CreateContainerResponse();
@@ -44,7 +44,7 @@ public class IndexModel : PageModel
             AttachStdin = true,              // Attach stdin to the container
             AttachStdout = true,             // Attach stdout to capture output
             AttachStderr = true,             // Attach stderr to capture errors
-                           Cmd =  new List<string> { "sleep", "infinity" } // Keeps the container running
+            Cmd = new List<string> { "sleep", "infinity" } // Keeps the container running
 
         };
 
@@ -185,25 +185,28 @@ public class IndexModel : PageModel
             await client.Containers.StartContainerAsync(
                 CreatedContainer.ID, new ContainerStartParameters());
 
-            
+
             Console.WriteLine("Container started successfully");
         }
         catch (Exception e)
         {
             Console.WriteLine("Error: " + e.Message);
         }
+
+
+        // excute command into the container 
+
         try
         {
-            // Create the exec instance with the specified command
             var execCreateResponse = await client.Exec.ExecCreateContainerAsync(CreatedContainer.ID, new ContainerExecCreateParameters
             {
                 AttachStdin = true,
                 AttachStdout = true,
                 AttachStderr = true,
                 Tty = true,
-                Cmd = [ 
-                        "echo 'Hello World' > /tmp/hello.txt"
-                     ] // Executes the command in a Bash shell
+                // command create directory in the root add file to it and list the files in it
+
+                Cmd = new List<string> { "sh", "-c", "mkdir /root/test && echo 'Hello, World!' > /root/test/hello.txt && ls /root/test" }
             });
 
             // Start the exec instance and attach to the output
@@ -233,6 +236,7 @@ public class IndexModel : PageModel
         {
             Console.WriteLine("Error: " + e.Message);
         }
+
     }
 
     // call the mainAsync method
