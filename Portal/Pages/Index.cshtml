@@ -13,26 +13,11 @@
     <div class="row justify-content-center mb-5">
         <div class="col-md-6">
             <form method="post" class="form-inline justify-content-center">
-                <div class="form-group mb-2 mr-2">
-                    <label for="name" class="sr-only">Name</label>
-                    <input type="text" id="name" name="Name" class="form-control" placeholder="Enter your name" />
-                </div>
-                <button type="submit" class="btn btn-primary mb-2">Click me</button>
+                <button type="submit" class="btn btn-primary mb-2">Deploy Hello-Wolrd container </button>
             </form>
         </div>
     </div>
 
-    <!-- Display Greeting -->
-    @if (!string.IsNullOrEmpty(Model.Name))
-    {
-        <div class="row justify-content-center mb-4">
-            <div class="col-md-6">
-                <div class="alert alert-success text-center" role="alert">
-                    <h2>Hello, @Model.Name!</h2>
-                </div>
-            </div>
-        </div>
-    }
 
     <!-- Display Containers List -->
     @if (Model.Containers != null && Model.Containers.Any())
@@ -56,7 +41,7 @@
                             @foreach (var container in Model.Containers)
                             {
                                 <tr>
-                                    <td>@container.InstanceId</td>
+                                    <td>@container.InstanceId ...</td>
                                     <td>@container.ServerType</td>
                                     <td>
                                         @container.Status
