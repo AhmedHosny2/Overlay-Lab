@@ -15,6 +15,13 @@ namespace Portal.Pages;
 public class IndexModel : PageModel
 {
     private readonly ILogger<IndexModel> _logger;
+    [BindProperty]
+    public string CommandInput { get; set; }
+
+    public string CommandOutput { get; private set; }
+
+    public CreateContainerResponse CreatedContainer = new CreateContainerResponse();
+    public DockerClient client ;
     // list od containers data
     public IList<ServerInstance> Containers { get; set; } = new List<ServerInstance>();
     public IndexModel(ILogger<IndexModel> logger)
@@ -169,8 +176,9 @@ public class IndexModel : PageModel
 
 
     // excute command into the container
-    public async Task ExecuteCommand(DockerClient client, CreateContainerResponse CreatedContainer, List<string> Command)
+    public async Task<string> ExecuteCommand(DockerClient client, CreateContainerResponse CreatedContainer, List<string> Command)
     {
+        Console.WriteLine($"Client: {client}, CreatedContainer: {CreatedContainer.ID}, Command: {string.Join(" ", Command)}");
         try
         {
             var execCreateResponse = await client.Exec.ExecCreateContainerAsync(CreatedContainer.ID, new ContainerExecCreateParameters
@@ -205,11 +213,13 @@ public class IndexModel : PageModel
                 // Print the output to the console
                 Console.WriteLine("Command output:");
                 Console.WriteLine(outputBuilder.ToString());
+                return outputBuilder.ToString();
             }
         }
         catch (Exception e)
         {
             Console.WriteLine("Error: " + e.Message);
+            return e.Message;
         }
     }
 
@@ -217,14 +227,14 @@ public class IndexModel : PageModel
     {
         try
         {
-            var client = ConnectToDocker();
+            client = ConnectToDocker();
             string ImageName = "alpine";
             await CheckOrCreateImage(client, ImageName);
-            var CreatedContainer = await CreateContainer(client, ImageName);
+           CreatedContainer = await CreateContainer(client, ImageName);
             await ListContainers(client);
             await RunContainer(client, CreatedContainer);
-            // await ExecuteCommand(client, CreatedContainer, new List<string> { "sh", "-c", "mkdir /root/test && echo 'Hello, World!' > /root/test/hello.txt && ls /root/test" });
-
+            var output = await ExecuteCommand(client, CreatedContainer, new List<string> { "sh", "-c", "mkdir /root/test && echo 'Hello, World!' > /root/test/hello.txt && ls /root/test" });
+            Console.WriteLine(output);
         }
         catch (Exception e)
         {
@@ -246,7 +256,14 @@ public class IndexModel : PageModel
         await ListContainers(ConnectToDocker());
     }
 
+    public async void OnPostExecuteCommand()
 
+    {
+        CommandOutput = $"You entered: {CommandInput}";
+
+     string ExecOutput =    await ExecuteCommand(client,  CreatedContainer, new List<string> { CommandInput });
+        CommandOutput = ExecOutput+ " this is the output";
+    }
 
     // old code 
     // public async Task MainAsync()
