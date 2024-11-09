@@ -244,8 +244,8 @@ public class IndexModel : PageModel
     }
 
 
-
-    public async Task OnPostAsync()
+// DeployInstance is the function name with the butto 
+    public async Task OnPostDeployInstance()
     {
         await MainAsync();
 
