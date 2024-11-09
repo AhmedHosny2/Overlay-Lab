@@ -6,7 +6,7 @@ namespace Portal.Models
         public string ServerType { get; set; }
         public string Status { get; set; }
         public string IpAddress { get; set; }
-        public int Port { get; set; }
+        public string Port { get; set; }
         public DateTime Created { get; set; }
     }
 }
