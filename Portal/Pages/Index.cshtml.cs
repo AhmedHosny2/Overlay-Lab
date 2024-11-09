@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 
 
 namespace Portal.Pages;
@@ -17,11 +18,10 @@ public class IndexModel : PageModel
     private readonly ILogger<IndexModel> _logger;
     [BindProperty]
     public string CommandInput { get; set; }
-
-    public string CommandOutput { get; private set; }
-
-    public CreateContainerResponse CreatedContainer = new CreateContainerResponse();
-    public DockerClient client ;
+    [BindProperty]
+    public string CommandOutput { get; set; }
+    // public CreateContainerResponse CreatedContainer = new CreateContainerResponse();
+    // public DockerClient client ;
     // list od containers data
     public IList<ServerInstance> Containers { get; set; } = new List<ServerInstance>();
     public IndexModel(ILogger<IndexModel> logger)
@@ -176,12 +176,16 @@ public class IndexModel : PageModel
 
 
     // excute command into the container
-    public async Task<string> ExecuteCommand(DockerClient client, CreateContainerResponse CreatedContainer, List<string> Command)
+    public async Task<StringBuilder> ExecuteCommand(DockerClient client, List<string> Command)
     {
-        Console.WriteLine($"Client: {client}, CreatedContainer: {CreatedContainer.ID}, Command: {string.Join(" ", Command)}");
+
+
+        var myCreatedContainerId = HttpContext.Session.GetString("CreatedContainerId");
+
+        Console.WriteLine($"Client: {client}, CreatedContainer: {myCreatedContainerId}, Command: {string.Join(" ", Command)}");
         try
         {
-            var execCreateResponse = await client.Exec.ExecCreateContainerAsync(CreatedContainer.ID, new ContainerExecCreateParameters
+            var execCreateResponse = await client.Exec.ExecCreateContainerAsync(myCreatedContainerId, new ContainerExecCreateParameters
             {
                 AttachStdin = true,
                 AttachStdout = true,
@@ -212,14 +216,15 @@ public class IndexModel : PageModel
 
                 // Print the output to the console
                 Console.WriteLine("Command output:");
-                Console.WriteLine(outputBuilder.ToString());
-                return outputBuilder.ToString();
+                Console.WriteLine(outputBuilder);
+                
+                return outputBuilder;
             }
         }
         catch (Exception e)
         {
             Console.WriteLine("Error: " + e.Message);
-            return e.Message;
+            return new StringBuilder(e.Message);
         }
     }
 
@@ -227,14 +232,18 @@ public class IndexModel : PageModel
     {
         try
         {
-            client = ConnectToDocker();
+            var client = ConnectToDocker();
+
             string ImageName = "alpine";
             await CheckOrCreateImage(client, ImageName);
-           CreatedContainer = await CreateContainer(client, ImageName);
+            var CreatedContainer = await CreateContainer(client, ImageName);
+            // store the created container id in the session
+            HttpContext.Session.SetString("CreatedContainerId", CreatedContainer.ID);
             await ListContainers(client);
             await RunContainer(client, CreatedContainer);
-            var output = await ExecuteCommand(client, CreatedContainer, new List<string> { "sh", "-c", "mkdir /root/test && echo 'Hello, World!' > /root/test/hello.txt && ls /root/test" });
-            Console.WriteLine(output);
+
+            // var output = await ExecuteCommand(ConnectToDocker(),   new List<string> { "sh", "-c", "mkdir /root/test && echo 'Hello, World!' > /root/test/hello.txt && ls /root/test" });
+            // Console.WriteLine(output);
         }
         catch (Exception e)
         {
@@ -244,7 +253,7 @@ public class IndexModel : PageModel
     }
 
 
-// DeployInstance is the function name with the butto 
+    // DeployInstance is the function name with the butto 
     public async Task OnPostDeployInstance()
     {
         await MainAsync();
@@ -256,13 +265,19 @@ public class IndexModel : PageModel
         await ListContainers(ConnectToDocker());
     }
 
-    public async void OnPostExecuteCommand()
-
+       // Method to execute command asynchronously and store the result
+    public async Task<IActionResult> OnPostExecuteCommand()
     {
-        CommandOutput = $"You entered: {CommandInput}";
+        // get input from the form
+        List<string> command = Request.Form["CommandInput"].ToString().Split(' ').ToList();
+        // Execute command and get the output
+        StringBuilder execOutput = await ExecuteCommand(ConnectToDocker(), command);
+        
+        // Store the output in CommandOutput
+        CommandOutput = execOutput + " this is the output";
 
-     string ExecOutput =    await ExecuteCommand(client,  CreatedContainer, new List<string> { CommandInput });
-        CommandOutput = ExecOutput+ " this is the output";
+        // Return the page with updated model
+        return Page();
     }
 
     // old code 
