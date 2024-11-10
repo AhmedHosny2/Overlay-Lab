@@ -90,7 +90,7 @@ public class IDEToDockerModel : PageModel
         StringBuilder execOutput = await ExecuteCommand(ConnectToDocker(), command);
 
         // Store the output in CommandOutput
-        CommandOutput = execOutput + " this is the output";
+        CommandOutput = execOutput.ToString();
 
         // Return the page with updated model
         return Page();
