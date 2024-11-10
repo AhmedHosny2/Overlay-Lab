@@ -21,10 +21,8 @@ public class IndexModel : PageModel
     public string CommandInput { get; set; }
     [BindProperty]
     public string CommandOutput { get; set; }
-    // public CreateContainerResponse CreatedContainer = new CreateContainerResponse();
-    // public DockerClient client ;
-    // list od containers data
     public IList<ServerInstance> Containers { get; set; } = new List<ServerInstance>();
+
     public IndexModel(ILogger<IndexModel> logger)
     {
         _logger = logger;
@@ -132,7 +130,8 @@ public class IndexModel : PageModel
 
         };
 
-        var createContainerParameters = new CreateContainerParameters(config){
+        var createContainerParameters = new CreateContainerParameters(config)
+        {
             HostConfig = hostConfig
         };
 
@@ -185,16 +184,10 @@ public class IndexModel : PageModel
                     Console.WriteLine($"Host IP: {portMapping.IP}, Host Port: {portMapping.PublicPort}, Container Port: {portMapping.PrivatePort}, Type: {portMapping.Type}");
                 }
 
-
-
-
-
-
-
                 Console.WriteLine();
                 string port = "No port";
-            if(container.Ports.Count > 0)
-                port = container.Ports[0].PublicPort.ToString();
+                if (container.Ports.Count > 0)
+                    port = container.Ports[0].PublicPort.ToString();
 
                 Containers.Add(
                     new ServerInstance
@@ -234,7 +227,7 @@ public class IndexModel : PageModel
     }
 
 
-    // excute command into the container
+    // execute command into the container
     public async Task<StringBuilder> ExecuteCommand(DockerClient client, List<string> Command)
     {
 
@@ -287,6 +280,7 @@ public class IndexModel : PageModel
         }
     }
 
+    // Main function to run the docker commands
     public async Task MainAsync()
     {
         try
@@ -312,7 +306,7 @@ public class IndexModel : PageModel
     }
 
 
-    // DeployInstance is the function name with the butto 
+    // DeployInstance is the function name with the button 
     public async Task OnPostDeployInstance()
     {
         await MainAsync();
@@ -321,28 +315,8 @@ public class IndexModel : PageModel
 
     public async Task OnGetAsync()
     {
-
-
         await ListContainers(ConnectToDocker());
-
-
     }
-
-    // Method to execute command asynchronously and store the result
-    public async Task<IActionResult> OnPostExecuteCommand()
-    {
-        // get input from the form
-        List<string> command = Request.Form["CommandInput"].ToString().Split(' ').ToList();
-        // Execute command and get the output
-        StringBuilder execOutput = await ExecuteCommand(ConnectToDocker(), command);
-
-        // Store the output in CommandOutput
-        CommandOutput = execOutput + " this is the output";
-
-        // Return the page with updated model
-        return Page();
-    }
-
 
 
 }
