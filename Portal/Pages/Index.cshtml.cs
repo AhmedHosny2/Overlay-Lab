@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using System.Net;
 
 
 namespace Portal.Pages;
@@ -90,6 +91,23 @@ public class IndexModel : PageModel
     public async Task<CreateContainerResponse> CreateContainer(DockerClient client, string ImageName)
     {
         var CreatedContainer = new CreateContainerResponse();
+        var hostConfig = new HostConfig
+        {
+            PortBindings = new Dictionary<string, IList<PortBinding>>
+    {
+        {
+            "80/tcp", // Container port
+            new List<PortBinding>
+            {
+                new PortBinding
+                {
+                    HostPort = "" // Leave empty to let Docker assign a dynamic port
+                }
+            }
+        }
+    }
+        };
+
         // set container properties
         var config = new Config
         {
@@ -102,11 +120,21 @@ public class IndexModel : PageModel
             Cmd = new List<string> { "sleep", "infinity" }, // Keeps the container running
             Hostname = "localhost",
             Domainname = "example.com",
+            ExposedPorts = new Dictionary<string, EmptyStruct>
+            {
+                { "80/tcp", new EmptyStruct() } // Expose port 80 internally
+            }
+
+            //add port and  handle if the port is already in use
+
+
 
 
         };
 
-        var createContainerParameters = new CreateContainerParameters(config);
+        var createContainerParameters = new CreateContainerParameters(config){
+            HostConfig = hostConfig
+        };
 
         // Create docker container from the image
         Console.WriteLine("Creating container ${ImageName}");
@@ -130,12 +158,43 @@ public class IndexModel : PageModel
         try
         {
             IList<ContainerListResponse> containers = await client.Containers.ListContainersAsync(
+                // flag to show ports 
+
                 new ContainersListParameters()
                 {
-                    Limit = 10,
+                    All = true,
+                    // force docke  r to show all ports
+
+
                 });
             foreach (var container in containers)
             {
+                var networks = container.NetworkSettings.Networks["bridge"];
+                var ip = networks.IPAddress;
+                // var gateway = networks.Gateway;
+                // var mac = networks.MacAddress;
+                // get port 
+                // var port = container.Ports[0].PublicPort;
+                // Console.WriteLine("Container ports: " + container.Ports);
+
+                Console.WriteLine("Container ports: " + container.Ports);
+
+                // Access port bindings in NetworkSettings
+                foreach (var portMapping in container.Ports)
+                {
+                    Console.WriteLine($"Host IP: {portMapping.IP}, Host Port: {portMapping.PublicPort}, Container Port: {portMapping.PrivatePort}, Type: {portMapping.Type}");
+                }
+
+
+
+
+
+
+
+                Console.WriteLine();
+                string port = "No port";
+            if(container.Ports.Count > 0)
+                port = container.Ports[0].PublicPort.ToString();
 
                 Containers.Add(
                     new ServerInstance
@@ -143,9 +202,9 @@ public class IndexModel : PageModel
                         InstanceId = container.ID.Substring(0, 5),
 
                         ServerType = container.Image.Split("@sha256")[0],
-                        Status = container.Status,
-                        IpAddress = "X.X.X.X", // todo double chick 
-                        Port = "X.X.X.X",
+                        Status = container.State,
+                        IpAddress = ip, // todo double chick 
+                        Port = port,
                         Created = container.Created
                     }
                 );
@@ -263,9 +322,9 @@ public class IndexModel : PageModel
     public async Task OnGetAsync()
     {
 
-        
+
         await ListContainers(ConnectToDocker());
-     
+
 
     }
 
