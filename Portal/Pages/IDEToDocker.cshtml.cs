@@ -83,18 +83,16 @@ public class IDEToDockerModel : PageModel
     {
     }
     public async Task<IActionResult> OnPostExecuteCommand()
-    {
-        // get input from the form
-        List<string> command = Request.Form["CommandInput"].ToString().Split(' ').ToList();
-        // Execute command and get the output
-        StringBuilder execOutput = await ExecuteCommand(ConnectToDocker(), command);
+{
+    // Get input from the form and parse it into command arguments
+    List<string> command = Request.Form["CommandInput"].ToString().Split(' ').ToList();
 
-        // Store the output in CommandOutput
-        CommandOutput = execOutput.ToString();
+    // Execute the command and capture the output
+    StringBuilder execOutput = await ExecuteCommand(ConnectToDocker(), command);
 
-        // Return the page with updated model
-        return Page();
-    }
+    // Return the command output as a JSON result for AJAX handling
+    return new JsonResult(new { success = true, output = execOutput.ToString() });
+}
 
 
 }
