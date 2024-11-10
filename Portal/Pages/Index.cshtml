@@ -8,42 +8,15 @@
     <div class="text-center mb-4">
         <h1 class="display-4">Welcome!!</h1>
     </div>
-    <h2>Enter Command</h2>
-    <form method="post" asp-page-handler="ExecuteCommand">
-        <div id="editor" style="height:400px;border:1px solid grey"></div>
 
-        <!-- Hidden input to capture editor content -->
-        <input type="hidden" id="commandInput" name="CommandInput" />
 
-        <br />
-        <input type="submit" value="Execute Command" class="btn btn-primary mb-2" />
-    </form>
 
-    <h3>Command Output</h3>
-    <p>this is the output !!!! @Model.CommandOutput</p>
 
-    <!-- Monaco Editor Script -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.22.3/min/vs/loader.js"></script>
-    <script>
-        require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.22.3/min/vs' } });
-        require(['vs/editor/editor.main'], function () {
-            var editor = monaco.editor.create(document.getElementById('editor'), {
-                value: '',
-                language: 'shell',
-                theme: 'vs-dark'
-            });
-            var form = document.querySelector('form');
-            form.addEventListener('submit', function () {
-                document.getElementById('commandInput').value = editor.getValue();
-            });
-        });
-    </script>
-
-    <!-- User Input Form -->
+    <!-- User Input Form to deploy container -->
     <div class="row justify-content-center mb-5">
         <div class="col-md-6">
             <form method="post" class="form-inline justify-content-center">
-                <button type="submit"  asp-page-handler="DeployInstance" class="btn btn-success mb-2">Deploy a container </button>
+                <button type="submit"  asp-page-handler="DeployInstance" class="btn btn-success mb-2 deploy-btn">Deploy a container </button>
             </form>
         </div>
     </div>
@@ -109,5 +82,10 @@
     .table tbody td {
         vertical-align: middle;
         text-align: center;
+    }
+    .deploy-btn {
+     @* top left  *@
+     align-items: center;
+     
     }
 </style>
