@@ -9,9 +9,9 @@ namespace Portal.Pages;
 public class IDEToDockerModel : PageModel
 {
     [BindProperty]
-    public string CommandInput { get; set; }
+    public string? CommandInput { get; set; }
     [BindProperty]
-    public string CommandOutput { get; set; }
+    public string? CommandOutput { get; set; }
     //TODO make this function once and use it in all pages not twice  
     public DockerClient ConnectToDocker()
     {
@@ -26,7 +26,9 @@ public class IDEToDockerModel : PageModel
 
 
         var myCreatedContainerId = HttpContext.Session.GetString("CreatedContainerId");
-
+        // append "sh", "-c" to the command to run it in the shell
+        Command.Insert(0, "sh");
+        Command.Insert(1, "-c");
         Console.WriteLine($"Client: {client}, CreatedContainer: {myCreatedContainerId}, Command: {string.Join(" ", Command)}");
         try
         {
@@ -35,6 +37,8 @@ public class IDEToDockerModel : PageModel
                 AttachStdin = true,
                 AttachStdout = true,
                 AttachStderr = true,
+                Privileged=true,
+                //   WorkingDir = "/app", // Target directory
                 // Tty = true,        
                 // command create directory in the root add file to it and list the files in it
 
@@ -85,7 +89,7 @@ public class IDEToDockerModel : PageModel
     public async Task<IActionResult> OnPostExecuteCommand()
 {
     // Get input from the form and parse it into command arguments
-    List<string> command = Request.Form["CommandInput"].ToString().Split(' ').ToList();
+    List<string?> command = Request.Form["CommandInput"].ToList() ?? new List<string?>();
 
     // Execute the command and capture the output
     StringBuilder execOutput = await ExecuteCommand(ConnectToDocker(), command);
