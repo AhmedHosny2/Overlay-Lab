@@ -1,23 +1,127 @@
-html {
-  font-size: 14px;
+/* site.css */
+
+/* General Styles */
+body {
+  background-color: #f8f9fa;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 }
 
-@media (min-width: 768px) {
-  html {
-    font-size: 16px;
+h1.display-4 {
+  color: #343a40;
+  animation: fadeInDown 1s ease-out;
+}
+
+h2 {
+  color: #495057;
+  position: relative;
+}
+
+.table {
+  background-color: #ffffff;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.table thead th {
+  vertical-align: middle;
+  text-align: center;
+  background-color: #343a40;
+  color: #ffffff;
+  font-weight: bold;
+}
+
+.table tbody td {
+  vertical-align: middle;
+  text-align: center;
+  transition: background-color 0.3s ease;
+}
+
+/* Status-Based Colors */
+.status {
+  font-weight: bold;
+  color: #109756;
+  padding: 5px 10px;
+  border-radius: 4px;
+  animation: pulse 2s infinite;
+}
+
+/* Status Specific Classes */
+.status-created {
+  background-color: #6c757d; /* Gray */
+}
+
+.status-running {
+  background-color: #28a745; /* Green */
+  animation: none;
+}
+
+.status-paused {
+  background-color: #ffc107; /* Yellow */
+  animation: none;
+}
+
+.status-restarting {
+  animation: none;
+  background-color: #17a2b8; /* Teal */
+}
+
+.status-exited {
+  animation: none;
+  background-color: #dc3545; /* Red */
+}
+
+.status-dead {
+  animation: none;
+  background-color: #343a40; /* Dark Gray */
+}
+
+.status-removing {
+  animation: none;
+  background-color: #fd7e14; /* Orange */
+}
+
+.status-unknown {
+  animation: none;
+  background-color: #6c757d; /* Gray */
+}
+
+/* Animations */
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
-.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(79, 34, 34, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(255, 255, 255, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0);
+  }
 }
 
-html {
-  position: relative;
-  min-height: 100%;
-}
+/* Responsive Enhancements */
+@media (max-width: 768px) {
+  h1.display-4 {
+    font-size: 2.5rem;
+  }
 
-body {
-  margin-bottom: 60px;
-  
+  h2 {
+    font-size: 1.75rem;
+  }
+
+  .table thead th,
+  .table tbody td {
+    font-size: 0.9rem;
+  }
 }
