@@ -1,0 +1,37 @@
+﻿@page
+@model MyApp.Namespace.DeployContainerModel
+@{
+    ViewData["Title"] = "Deploy Container";
+}
+
+<!-- Page Title -->
+<h2 class="text-center mt-4">@ViewData["Title"]</h2>
+
+<!-- User Input Form to Deploy Container -->
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+
+            <form method="post" asp-page-handler="DeployInstance" class="form-group">
+                <!-- Deployment Name Field -->
+                <div class="form-group mb-3">
+                    <label for="DeploymentName" class="form-label">Deployment Name</label>
+                    <input type="text" class="form-control" id="DeploymentName" name="DeploymentName"
+                        placeholder="Enter Deployment Name" asp-for="DeploymentName" />
+                    <span asp-validation-for="DeploymentName" class="text-danger"></span>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="text-center">
+                    <button type="submit" class="btn btn-success deploy-btn">Deploy Container</button>
+                </div>
+            </form>
+
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <!-- Optional: Include client-side validation scripts -->
+    <partial name="_ValidationScriptsPartial" />
+}

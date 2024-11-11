@@ -1,4 +1,5 @@
 namespace Portal.Models
+
 {
     public class ServerInstance
     {
@@ -9,6 +10,6 @@ namespace Portal.Models
         public string Port { get; set; }= string.Empty;
         public DateTime Created { get; set; }= DateTime.MinValue;
         public string Name { get; set; }= string.Empty;
-        
+
     }
 }
