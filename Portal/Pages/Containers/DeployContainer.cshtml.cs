@@ -9,8 +9,9 @@ namespace MyApp.Namespace
     {
         private IDeploymentService _deploymentService = new Portal.DeploymentService.Class.DeploymentService();// TODO why ?
         [BindProperty]
-        public string DeploymentName { get; set; }
-
+        public string? DeploymentName { get; set; }
+        [BindProperty]
+        public string? ImageName { get; set; } = "alpine";
         public void OnGet()
         {
         }
@@ -22,21 +23,31 @@ namespace MyApp.Namespace
             {
                 var client = _deploymentService.ConnectToDocker();
 
-                string ImageName = "alpine";
-                await _deploymentService.CheckOrCreateImage(client, ImageName);
 
-                var CreatedContainerId = await _deploymentService.CreateContainer(client, ImageName, DeploymentName);
+                if (!string.IsNullOrEmpty(ImageName))
+                {
+                    await _deploymentService.CheckOrCreateImage(client, ImageName);
+                }
+                else
+                {
+                    throw new ArgumentNullException(nameof(ImageName), "ImageName cannot be null or empty.");
+                }
+
+                var CreatedContainerId = await _deploymentService.CreateContainer(client, ImageName, DeploymentName ?? "default-container");
                 // store the created container id in the session
                 HttpContext.Session.SetString("CreatedContainerId", CreatedContainerId);
                 IList<ServerInstance> Containers = await _deploymentService.ListContainers(client);
                 await _deploymentService.RunContainer(client, CreatedContainerId);
-
+                // redirct ot the home page
+                Response.Redirect("/");
                 // var output = await ExecuteCommand(ConnectToDocker(),   new List<string> { "sh", "-c", "mkdir /root/test && echo 'Hello, World!' > /root/test/hello.txt && ls /root/test" });
                 // Console.WriteLine(output);
             }
             catch (Exception e)
             {
                 Console.WriteLine("Error: " + e.Message);
+
+
 
             }
         }

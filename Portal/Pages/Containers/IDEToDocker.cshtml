@@ -134,7 +134,23 @@
             editor.addCommand(monaco.KeyCode.Enter, function () {
                 var command = editor.getValue().trim();
                 if (command === "") return;
+                if (command.trim() === "clear") {
+                    document.getElementById('terminalOutput').innerHTML = '';
+                    editor.setValue('');
+                    return;
+                }
+                if (command.trim() === "exit") {
+                    window.location.href = '/';
+                    return;
+                }
 
+                if (command.trim() === "help") {
+                    appendToTerminal("Commands:\n");
+                    appendToTerminal("clear - Clear the terminal\n");
+                    appendToTerminal("exit - Go back to the home page\n");
+                    appendToTerminal("help - Display this help message\n");
+                    return;
+                }
                 // Append the command to the terminal output
                 appendToTerminal(`$ ${command}`);
                 // append new line

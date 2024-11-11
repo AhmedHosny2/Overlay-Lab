@@ -30,9 +30,13 @@ public class IDEToDockerModel : PageModel
         {
 
             // Get input from the form and parse it into command arguments
-            List<string?> command = Request.Form["CommandInput"].ToList() ?? new List<string?>();
+            var command = Request.Form["CommandInput"].Where(x => x != null).Select(x => x!).ToList();
             // get container ID
             string? containerId = HttpContext.Session.GetString("CreatedContainerId");
+            if (containerId == null)
+            {
+                return new JsonResult(new { success = false, output = "Container ID not found in session" });
+            }
             // Execute the command and capture the output
             StringBuilder execOutput = await _deploymentService.ExecuteCommand(_deploymentService.ConnectToDocker(), command, containerId);
 

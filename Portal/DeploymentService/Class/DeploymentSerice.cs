@@ -44,7 +44,7 @@ namespace Portal.DeploymentService.Class
             });
             if (images.Count == 0)
             {
-                Console.WriteLine("Pulling image ${ImageName}");
+                Console.WriteLine("Pulling image ",ImageName);  
                 try
                 {
                     await client.Images.CreateImageAsync(
@@ -74,6 +74,9 @@ namespace Portal.DeploymentService.Class
         // create container
         public async Task<string> CreateContainer(DockerClient client, string ImageName, string DeploymentName)
         {
+
+           
+
             var CreatedContainer = new CreateContainerResponse();
             var hostConfig = new HostConfig
             {
@@ -104,7 +107,9 @@ namespace Portal.DeploymentService.Class
                 AttachStdin = true,
                 AttachStdout = true,
                 AttachStderr = true,
-                Cmd = new List<string> { "sleep", "infinity" }, // Run the container in the background
+                 // create container with sudo privilages and sleep infinity 
+                Cmd = new List<string> { "/bin/sh", "-c", "sleep infinity" },
+               
                 ExposedPorts = new Dictionary<string, EmptyStruct>
             {
                 { "80/tcp", new EmptyStruct() }

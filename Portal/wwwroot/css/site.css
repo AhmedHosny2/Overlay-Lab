@@ -48,42 +48,45 @@ h2 {
 
 /* Status Specific Classes */
 .status-created {
-  background-color: #6c757d; /* Gray */
+
+  /* activate animation  */
+
+  color: #6c757d; /* Gray */
 }
 
 .status-running {
-  background-color: #28a745; /* Green */
-  animation: none;
+  color: #28a745; /* Green */
+  /* animation: none; */
 }
 
 .status-paused {
-  background-color: #ffc107; /* Yellow */
+  color: #ffc107; /* Yellow */
   animation: none;
 }
 
 .status-restarting {
   animation: none;
-  background-color: #17a2b8; /* Teal */
+  color: #17a2b8; /* Teal */
 }
 
 .status-exited {
   animation: none;
-  background-color: #dc3545; /* Red */
+  color: #dc3545; /* Red */
 }
 
 .status-dead {
   animation: none;
-  background-color: #343a40; /* Dark Gray */
+  color: #343a40; /* Dark Gray */
 }
 
 .status-removing {
   animation: none;
-  background-color: #fd7e14; /* Orange */
+  color: #fd7e14; /* Orange */
 }
 
 .status-unknown {
   animation: none;
-  background-color: #6c757d; /* Gray */
+  color: #6c757d; /* Gray */
 }
 
 /* Animations */

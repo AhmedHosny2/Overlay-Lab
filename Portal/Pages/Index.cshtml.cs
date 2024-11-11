@@ -18,7 +18,7 @@ namespace Portal.Pages;
 
 public class IndexModel : PageModel
 {
-    private readonly ILogger<IndexModel> _logger;
+    // private readonly ILogger<IndexModel> _logger;
     private IDeploymentService _deploymentService = new Portal.DeploymentService.Class.DeploymentService();
 
 
