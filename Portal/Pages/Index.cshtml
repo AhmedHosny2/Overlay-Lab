@@ -15,7 +15,12 @@
     <!-- User Input Form to deploy container -->
     <div class="row justify-content-center mb-5">
         <div class="col-md-6">
+
+        
             <form method="post" class="form-inline justify-content-center">
+                        <label for="DeploymentName" class="sr-only">Deployment Name</label>
+                            <input type="text" class="form-control" id="DeploymentName" name="DeploymentName" placeholder="Enter Deployment Name" asp-for="DeploymentName" />          
+
                 <button type="submit"  asp-page-handler="DeployInstance" class="btn btn-success mb-2 deploy-btn">Deploy a container </button>
             </form>
         </div>
@@ -38,6 +43,8 @@
                                 <th>IP Address</th>
                                 <th>Port</th>
                                 <th>Created</th>
+                                @* name *@
+                                <th>Deployment Name</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -52,6 +59,7 @@
                                     <td>@container.IpAddress</td>
                                     <td>@container.Port</td>
                                     <td>@container.Created.ToString("g")</td>
+                                    <td>@container.Name</td>
                                 </tr>
                             }
                         </tbody>

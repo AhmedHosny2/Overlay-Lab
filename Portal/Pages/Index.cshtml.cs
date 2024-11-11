@@ -17,16 +17,15 @@ namespace Portal.Pages;
 public class IndexModel : PageModel
 {
     private readonly ILogger<IndexModel> _logger;
+
     [BindProperty]
-    public string CommandInput { get; set; }
-    [BindProperty]
-    public string CommandOutput { get; set; }
+    public string DeploymentName { get; set; }
     public IList<ServerInstance> Containers { get; set; } = new List<ServerInstance>();
 
-    public IndexModel(ILogger<IndexModel> logger)
-    {
-        _logger = logger;
-    }
+    // public IndexModel(ILogger<IndexModel> logger)
+    // {
+    //     _logger = logger;
+    // }
 
     // connect to our docker 
     public DockerClient ConnectToDocker()
@@ -86,9 +85,11 @@ public class IndexModel : PageModel
     }
 
     // create container
-    public async Task<CreateContainerResponse> CreateContainer(DockerClient client, string ImageName)
+    public async Task<CreateContainerResponse>? CreateContainer(DockerClient client, string ImageName)
     {
         var CreatedContainer = new CreateContainerResponse();
+        // set container name 
+
         var hostConfig = new HostConfig
         {
             PortBindings = new Dictionary<string, IList<PortBinding>>
@@ -108,7 +109,12 @@ public class IndexModel : PageModel
 
         // set container properties
         var config = new Config
+
         {
+            // docker name 
+
+
+
             Image = ImageName,         // Use the desired image
             Tty = true,                      // Allocate a pseudo-TTY
             OpenStdin = true,                // Keep stdin open for interaction
@@ -116,8 +122,10 @@ public class IndexModel : PageModel
             AttachStdout = true,             // Attach stdout to capture output
             AttachStderr = true,             // Attach stderr to capture errors
             Cmd = new List<string> { "sleep", "infinity" }, // Keeps the container running
-            Hostname = "localhost",
-            Domainname = "example.com",
+            // Hostname = "localhost",
+            // docker name 
+
+            // Domainname = "example.com",
             ExposedPorts = new Dictionary<string, EmptyStruct>
             {
                 { "80/tcp", new EmptyStruct() } // Expose port 80 internally
@@ -129,10 +137,17 @@ public class IndexModel : PageModel
 
 
         };
+        string timestamp = DateTime.UtcNow.ToString("o"); // ISO 8601 format for timestamp
 
         var createContainerParameters = new CreateContainerParameters(config)
         {
-            HostConfig = hostConfig
+            HostConfig = hostConfig,
+            Name = DeploymentName, // Set the container name
+            // MacAddress = macAddress, // Set the MAC address
+            Labels = new Dictionary<string, string>
+                {
+                    { "created_at", timestamp } // Add timestamp as a label
+                }
         };
 
         // Create docker container from the image
@@ -168,39 +183,46 @@ public class IndexModel : PageModel
                 });
             foreach (var container in containers)
             {
-                var networks = container.NetworkSettings.Networks["bridge"];
-                var ip = networks.IPAddress;
-                // var gateway = networks.Gateway;
-                // var mac = networks.MacAddress;
-                // get port 
-                // var port = container.Ports[0].PublicPort;
-                // Console.WriteLine("Container ports: " + container.Ports);
-
-                Console.WriteLine("Container ports: " + container.Ports);
-
-                // Access port bindings in NetworkSettings
-                foreach (var portMapping in container.Ports)
+                // get the first network  
+                foreach (var networks in container.NetworkSettings.Networks)
                 {
-                    Console.WriteLine($"Host IP: {portMapping.IP}, Host Port: {portMapping.PublicPort}, Container Port: {portMapping.PrivatePort}, Type: {portMapping.Type}");
-                }
 
-                Console.WriteLine();
-                string port = "No port";
-                if (container.Ports.Count > 0)
-                    port = container.Ports[0].PublicPort.ToString();
 
-                Containers.Add(
-                    new ServerInstance
+                    // var networks = container.NetworkSettings.Networks["bridge"];
+                    var ip = networks.Value.IPAddress;
+                    // var gateway = networks.Gateway;
+                    // var mac = networks.MacAddress;
+                    // get port 
+                    // var port = container.Ports[0].PublicPort;
+                    // Console.WriteLine("Container ports: " + container.Ports);
+
+                    Console.WriteLine("Container ports: " + container.Ports);
+
+                    // Access port bindings in NetworkSettings
+                    foreach (var portMapping in container.Ports)
                     {
-                        InstanceId = container.ID.Substring(0, 5),
-
-                        ServerType = container.Image.Split("@sha256")[0],
-                        Status = container.State,
-                        IpAddress = ip, // todo double chick 
-                        Port = port,
-                        Created = container.Created
+                        Console.WriteLine($"Host IP: {portMapping.IP}, Host Port: {portMapping.PublicPort}, Container Port: {portMapping.PrivatePort}, Type: {portMapping.Type}");
                     }
-                );
+
+                    Console.WriteLine();
+                    string port = "No port";
+                    if (container.Ports.Count > 0)
+                        port = container.Ports[0].PublicPort.ToString();
+
+                    Containers.Add(
+                        new ServerInstance
+                        {
+                            Name = container.Names[0],
+                            InstanceId = container.ID.Substring(0, 5),
+
+                            ServerType = container.Image.Split("@sha256")[0],
+                            Status = container.State,
+                            IpAddress = ip, // todo double chick 
+                            Port = port,
+                            Created = container.Created
+                        }
+                    );
+                }
             }
             Console.WriteLine("Containers listed successfully");
         }
@@ -289,6 +311,7 @@ public class IndexModel : PageModel
 
             string ImageName = "alpine";
             await CheckOrCreateImage(client, ImageName);
+
             var CreatedContainer = await CreateContainer(client, ImageName);
             // store the created container id in the session
             HttpContext.Session.SetString("CreatedContainerId", CreatedContainer.ID);
