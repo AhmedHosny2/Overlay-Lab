@@ -2,11 +2,13 @@ namespace Portal.Models
 {
     public class ServerInstance
     {
-        public string InstanceId { get; set; }
-        public string ServerType { get; set; }
-        public string Status { get; set; }
-        public string IpAddress { get; set; }
-        public string Port { get; set; }
-        public DateTime Created { get; set; }
+        public string InstanceId { get; set; } = string.Empty;
+        public string ServerType { get; set; }= string.Empty;
+        public string Status { get; set; }= string.Empty;
+        public string IpAddress { get; set; }= string.Empty;
+        public string Port { get; set; }= string.Empty;
+        public DateTime Created { get; set; }= DateTime.MinValue;
+        public string Name { get; set; }= string.Empty;
+        
     }
 }
