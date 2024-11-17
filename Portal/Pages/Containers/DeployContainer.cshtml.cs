@@ -24,7 +24,7 @@ namespace MyApp.Namespace
 
         [BindProperty]
         [Required(ErrorMessage = "Image Name is required.")]
-        public string ImageName { get; set; }
+        public string ImageName { get; set; } = string.Empty;
 
         public Dictionary<string, string> Images { get; set; }
 

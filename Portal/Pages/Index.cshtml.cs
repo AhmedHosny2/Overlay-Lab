@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Docker.DotNet;
+using System.ComponentModel.DataAnnotations;
 
 
 namespace Portal.Pages;
@@ -19,7 +20,8 @@ public class IndexModel : PageModel
 
 
     [BindProperty]
-    public string InstanceId { get; set; } // To bind the InstanceId from the form
+    [Required(ErrorMessage = "Instance ID is required.")]
+    public string InstanceId { get; set; } = string.Empty;// To bind the InstanceId from the form
 
     public IList<ServerInstance> Containers { get; set; } = new List<ServerInstance>();
 
