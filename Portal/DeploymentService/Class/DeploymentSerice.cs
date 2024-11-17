@@ -44,7 +44,7 @@ namespace Portal.DeploymentService.Class
             });
             if (images.Count == 0)
             {
-                Console.WriteLine("Pulling image ",ImageName);  
+                Console.WriteLine("Pulling image ", ImageName);
                 try
                 {
                     await client.Images.CreateImageAsync(
@@ -75,7 +75,7 @@ namespace Portal.DeploymentService.Class
         public async Task<string> CreateContainer(DockerClient client, string ImageName, string DeploymentName)
         {
 
-           
+
 
             var CreatedContainer = new CreateContainerResponse();
             var hostConfig = new HostConfig
@@ -107,9 +107,9 @@ namespace Portal.DeploymentService.Class
                 AttachStdin = true,
                 AttachStdout = true,
                 AttachStderr = true,
-                 // create container with sudo privilages and sleep infinity 
+                // create container with sudo privilages and sleep infinity 
                 Cmd = new List<string> { "/bin/sh", "-c", "sleep infinity" },
-               
+
                 ExposedPorts = new Dictionary<string, EmptyStruct>
             {
                 { "80/tcp", new EmptyStruct() }
@@ -246,7 +246,7 @@ namespace Portal.DeploymentService.Class
                     AttachStderr = true,
                     Tty = false,
                     Cmd = new List<string> { "sh", "-c", shellCommand } // Use 'sh -c' to execute the shell command
-                }); 
+                });
 
                 // Start the exec instance and attach to the output
                 using (var stream = await client.Exec.StartAndAttachContainerExecAsync(execCreateResponse.ID, false))
@@ -293,6 +293,6 @@ namespace Portal.DeploymentService.Class
                 Console.WriteLine("Error: " + e.Message);
             }
         }
-   
+
     }
 }

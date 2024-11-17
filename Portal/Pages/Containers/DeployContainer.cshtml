@@ -26,28 +26,20 @@
                     <label for="ImageName" class="form-label">Select Docker Image</label>
                     <select class="form-control" id="ImageName" name="ImageName" asp-for="ImageName">
                         <option value="">-- Select an Image --</option>
-                        <option value="python">Python Server </option>
-                        <option value="node">Node.js Server </option>
-                        @*  socket image *@
-                        <option value="offlinegmbh/socketio">Socket.io </option>
-                        @* grpc/go *@
-                        <option value="grpc/go">gRPC Server </option>
-                        <option value="nginx">Nginx Server </option>
+                        @foreach (var image in Model.Images)
+                        {
+                            <option value="@image.Key">@image.Value</option>
 
-                        <option value="eclipse-temurin">Java Server 
-                        </option>
-                        <option value="golang">Go Server </option>
-                        <option value="ruby">Ruby Server </option>
-                        <option value="php">PHP Server </option>
-                        <option value="rust">Rust Server </option>
-                        <option value="mcr.microsoft.com/dotnet/sdk:7.0">.NET Server 
-                        </option>
-                        <option value="redis">Redis Server </option>
-                        <option value="mysql">MySQL Server </option>
+
+                        }
+
                     </select>
                     <span asp-validation-for="ImageName" class="text-danger"></span>
                 </div>
 
+
+
+               
                 <!-- Submit Button -->
                 <div class="text-center">
                     <button type="submit" class="btn btn-success deploy-btn">Deploy Container</button>

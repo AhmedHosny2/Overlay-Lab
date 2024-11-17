@@ -11,15 +11,25 @@ namespace MyApp.Namespace
         [BindProperty]
         public string? DeploymentName { get; set; }
         [BindProperty]
-        public string? ImageName { get; set; } = "alpine";
+        public required string ImageName { get; set; }
 
-        public DeployContainerModel(IDeploymentService deploymentService)
+        public required Dictionary<string, string> Images { get; set; }
+        // get image name from the config file 
+        private readonly IConfiguration _configuration;
+
+        public DeployContainerModel(IDeploymentService deploymentService, IConfiguration configuration)
         {
             _deploymentService = deploymentService;
+            _configuration = configuration;
+            // load the image names list from the config file
+            Images = _configuration.GetSection("DockerImages").Get<Dictionary<string, string>>() ?? new Dictionary<string, string>();
+
         }
         public void OnGet()
         {
+
         }
+
 
         // Main function to run the docker commands
         public async Task MainAsync()
@@ -29,14 +39,14 @@ namespace MyApp.Namespace
                 var client = _deploymentService.ConnectToDocker();
 
 
-                if (!string.IsNullOrEmpty(ImageName))
+                //  check if image key  is null, empty or not in the list 
+                if (string.IsNullOrEmpty(ImageName) || !Images.ContainsKey(ImageName))
                 {
-                    await _deploymentService.CheckOrCreateImage(client, ImageName);
+                    throw new Exception("Invalid image name");
                 }
-                else
-                {
-                    throw new ArgumentNullException(nameof(ImageName), "ImageName cannot be null or empty.");
-                }
+                // map the image key to the value 
+                string MappedImageName = Images[ImageName];
+                Console.WriteLine("Deploying container with image: " + MappedImageName);
 
                 var CreatedContainerId = await _deploymentService.CreateContainer(client, ImageName, DeploymentName ?? "default-container");
                 // store the created container id in the session
@@ -45,14 +55,12 @@ namespace MyApp.Namespace
                 await _deploymentService.RunContainer(client, CreatedContainerId);
                 // redirct ot the home page
                 Response.Redirect("/");
-                // var output = await ExecuteCommand(ConnectToDocker(),   new List<string> { "sh", "-c", "mkdir /root/test && echo 'Hello, World!' > /root/test/hello.txt && ls /root/test" });
-                // Console.WriteLine(output);
             }
             catch (Exception e)
             {
                 Console.WriteLine("Error: " + e.Message);
 
-
+                
 
             }
         }
