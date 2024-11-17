@@ -166,33 +166,39 @@ namespace Portal.DeploymentService.Class
                     });
                 foreach (var container in containers)
                 {
-                    // get the first network  
-                    foreach (var networks in container.NetworkSettings.Networks)
-                    {
 
-
-                        // var networks = container.NetworkSettings.Networks["bridge"];
-                        var ip = networks.Value.IPAddress;
-                        // var gateway = networks.Gateway;
-                        // var mac = networks.MacAddress;
-                        // Access port bindings in NetworkSettings
-                        foreach (var portMapping in container.Ports)
+                        // log everything about the ip 
+                        foreach (var network in container.NetworkSettings.Networks)
                         {
+                            Console.WriteLine($"Network: {network.Key}");
+                            Console.WriteLine($"IP Address: {network.Value.IPAddress}");
+                            Console.WriteLine($"Gateway: {network.Value.Gateway}");
+                            Console.WriteLine($"Mac Address: {network.Value.MacAddress}");
                         }
 
-                        string port = "No port";
-                        if (container.Ports.Count > 0)
-                            port = container.Ports[0].PublicPort.ToString();
+                    var firstNetwork = container.NetworkSettings.Networks.Values.FirstOrDefault();
 
+                    if (firstNetwork != null)
+                    {
+                        // Get the private IP address from the first network
+                        var privateIP = firstNetwork.IPAddress;
+
+                        // Get the public port if available, else assign "No port"
+                        string port = "No port";
+                        if (container.Ports != null && container.Ports.Count > 0)
+                        {
+                            port = container.Ports[0].PublicPort.ToString();
+                        }
+
+                        // Add container details to the list of ServerInstance
                         Containers.Add(
                             new ServerInstance
                             {
                                 Name = container.Names[0],
                                 InstanceId = container.ID.Substring(0, 5),
-
                                 ServerType = container.Image.Split("@sha256")[0],
                                 Status = container.State,
-                                IpAddress = ip, // todo double chick 
+                                IpAddress = privateIP,
                                 Port = port,
                                 Created = container.Created
                             }
