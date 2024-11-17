@@ -19,10 +19,16 @@ namespace Portal.Pages;
 public class IndexModel : PageModel
 {
     // private readonly ILogger<IndexModel> _logger;
-    private IDeploymentService _deploymentService = new Portal.DeploymentService.Class.DeploymentService();
+    private IDeploymentService _deploymentService;
 
+    [BindProperty]
+    public string InstanceId { get; set; } // To bind the InstanceId from the form
 
-      public IList<ServerInstance> Containers { get; set; } = new List<ServerInstance>();
+    public IndexModel(IDeploymentService deploymentService)
+    {
+        _deploymentService = deploymentService;
+    }
+    public IList<ServerInstance> Containers { get; set; } = new List<ServerInstance>();
 
     // create DeploymentService object
 
@@ -31,12 +37,31 @@ public class IndexModel : PageModel
     //     _logger = logger;
     // }
 
-   
+
     // list containers
     public async Task OnGetAsync()
     {
-        Containers= await _deploymentService.ListContainers(_deploymentService.ConnectToDocker());
+        Containers = await _deploymentService.ListContainers(_deploymentService.ConnectToDocker());
     }
 
+    // on post PauseInstance 
+    public async Task<RedirectToPageResult> OnPostPauseInstance(string instanceId)
 
+    {
+        Console.WriteLine("Pausing container");
+        // id
+        Console.WriteLine(instanceId);
+        try
+        {
+            await _deploymentService.PauseContainer(_deploymentService.ConnectToDocker(), instanceId);
+            // refresh the page
+            return RedirectToPage();
+
+            // return new JsonResult(new { success = true, output = "Container paused" });
+        }
+        catch (Exception e)
+        {
+            return RedirectToPage();
+        }
+    }
 }

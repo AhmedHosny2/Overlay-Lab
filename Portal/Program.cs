@@ -1,11 +1,18 @@
 
+using Portal.DeploymentService.Class;
+using Portal.DeploymentService.Interface;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorPages();
 builder.Services.AddSession();
 builder.Services.AddDistributedMemoryCache();
+// dependency injection  for DeploymentService
+builder.Services.AddSingleton<IDeploymentService, DeploymentService>();
 var app = builder.Build();
+
+
 // enable session
 app.UseSession();
 // Configure the HTTP request pipeline.

@@ -235,9 +235,8 @@ namespace Portal.DeploymentService.Class
             try
             {
                 // Build a single shell command string for complex operations
-                string shellCommand = Command != null && Command.Any()
-                    ? string.Join(" ", Command)
-                    : "mkdir /root/test && echo 'Hello, World!' > /root/test/hello.txt && ls /root/test";
+                string shellCommand = Command != null ? string.Join(" ", Command) : ""
+                    ;
 
                 // Create the exec instance with the shell command
                 var execCreateResponse = await client.Exec.ExecCreateContainerAsync(ContainerId, new ContainerExecCreateParameters
@@ -247,7 +246,7 @@ namespace Portal.DeploymentService.Class
                     AttachStderr = true,
                     Tty = false,
                     Cmd = new List<string> { "sh", "-c", shellCommand } // Use 'sh -c' to execute the shell command
-                });
+                }); 
 
                 // Start the exec instance and attach to the output
                 using (var stream = await client.Exec.StartAndAttachContainerExecAsync(execCreateResponse.ID, false))
@@ -279,5 +278,21 @@ namespace Portal.DeploymentService.Class
                 return new StringBuilder(e.Message);
             }
         }
+
+        // pause the container 
+        public async Task PauseContainer(DockerClient client, string ContainerId)
+        {
+            Console.WriteLine("Pausing container");
+            try
+            {
+                await client.Containers.PauseContainerAsync(ContainerId);
+                Console.WriteLine("Container paused successfully");
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Error: " + e.Message);
+            }
+        }
+   
     }
 }

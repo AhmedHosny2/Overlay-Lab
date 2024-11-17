@@ -14,10 +14,12 @@ public class IDEToDockerModel : PageModel
     [BindProperty]
     public string? CommandOutput { get; set; }
     // create DeploymentService object
-    private IDeploymentService _deploymentService = new Portal.DeploymentService.Class.DeploymentService();// TODO why ?
+    private IDeploymentService _deploymentService;
 
-    //TODO make this function once and use it in all pages not twice  
-
+    public IDEToDockerModel(IDeploymentService deploymentService)
+    {
+        _deploymentService = deploymentService;
+    }
 
 
     public void OnGet()

@@ -7,11 +7,16 @@ namespace MyApp.Namespace
 {
     public class DeployContainerModel : PageModel
     {
-        private IDeploymentService _deploymentService = new Portal.DeploymentService.Class.DeploymentService();// TODO why ?
+        private IDeploymentService _deploymentService;
         [BindProperty]
         public string? DeploymentName { get; set; }
         [BindProperty]
         public string? ImageName { get; set; } = "alpine";
+
+        public DeployContainerModel(IDeploymentService deploymentService)
+        {
+            _deploymentService = deploymentService;
+        }
         public void OnGet()
         {
         }

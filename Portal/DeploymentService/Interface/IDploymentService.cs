@@ -18,6 +18,7 @@ namespace Portal.DeploymentService.Interface
         public Task RunContainer(DockerClient client, string ContainerId);
 
         public Task<StringBuilder> ExecuteCommand(DockerClient client, List<string> Command, string ContainerId);
+        public Task PauseContainer(DockerClient client, string ContainerId);
         // todo delete container 
     }
 }
