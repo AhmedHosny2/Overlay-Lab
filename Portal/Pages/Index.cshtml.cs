@@ -1,17 +1,11 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Docker.DotNet;
-using Docker.DotNet.Models;
 using Portal.Models;
-using System.Text;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Threading.Tasks;
-using Newtonsoft.Json;
-using System.Net;
 using Portal.DeploymentService.Interface;
-using Portal.DeploymentService.Class;
+using Microsoft.Extensions.Logging;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using Docker.DotNet;
 
 
 namespace Portal.Pages;
@@ -19,48 +13,48 @@ namespace Portal.Pages;
 public class IndexModel : PageModel
 {
     // private readonly ILogger<IndexModel> _logger;
-    private IDeploymentService _deploymentService;
+    private readonly IDeploymentService _deploymentService;
+    private DockerClient _dockerClient;
+    private readonly ILogger<IndexModel> _logger;
+
 
     [BindProperty]
     public string InstanceId { get; set; } // To bind the InstanceId from the form
 
-    public IndexModel(IDeploymentService deploymentService)
-    {
-        _deploymentService = deploymentService;
-    }
     public IList<ServerInstance> Containers { get; set; } = new List<ServerInstance>();
 
-    // create DeploymentService object
-
-    // public IndexModel(ILogger<IndexModel> logger)
-    // {
-    //     _logger = logger;
-    // }
+    public IndexModel(IDeploymentService deploymentService, ILogger<IndexModel> logger)
+    {
+        _deploymentService = deploymentService;
+        _dockerClient = _deploymentService.ConnectToDocker();
+        _logger = logger;
+    }
 
 
     // list containers
     public async Task OnGetAsync()
     {
-        Containers = await _deploymentService.ListContainers(_deploymentService.ConnectToDocker());
+        Containers = await _deploymentService.ListContainers(_dockerClient);
     }
 
-    // on post PauseInstance 
     public async Task<RedirectToPageResult> OnPostPauseInstance(string instanceId)
 
     {
-        Console.WriteLine("Pausing container");
-        // id
+        _logger.LogInformation($"Pausing container: {instanceId}");
+
         Console.WriteLine(instanceId);
         try
         {
-            await _deploymentService.PauseContainer(_deploymentService.ConnectToDocker(), instanceId);
-            // refresh the page
+            await _deploymentService.PauseContainer(_dockerClient, instanceId);
             return RedirectToPage();
 
-            // return new JsonResult(new { success = true, output = "Container paused" });
         }
         catch (Exception e)
         {
+            _logger.LogError(e, $"Failed to pause container: {instanceId}");
+            ModelState.AddModelError("", "There was an error pausing the container. Please try again later.");
+
+
             return RedirectToPage();
         }
     }

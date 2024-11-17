@@ -14,6 +14,14 @@ var app = builder.Build();
 
 
 
+// Add CSP middleware to disallow inline JavaScript
+app.Use(async (context, next) =>
+{
+    context.Response.Headers.Append("Content-Security-Policy", "default-src 'self'; script-src 'self' https://stackpath.bootstrapcdn.com https://code.jquery.com https://cdn.jsdelivr.net;");
+    await next();
+});
+
+
 // enable session
 app.UseSession();
 // Configure the HTTP request pipeline.
