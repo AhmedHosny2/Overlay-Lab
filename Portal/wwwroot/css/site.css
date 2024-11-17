@@ -37,7 +37,7 @@ h2 {
   transition: background-color 0.3s ease;
 }
 
-/* Status-Based Colors */
+/* Based Colors */
 .status {
   font-weight: bold;
   color: #109756;
@@ -47,43 +47,43 @@ h2 {
 }
 
 /* Status Specific Classes */
-.status-created {
+.created {
   /* activate animation  */
 
   color: #6c757d; /* Gray */
 }
 
-.status-running {
+.running {
   color: #28a745; /* Green */
   /* animation: none; */
 }
 
-.status-paused {
+.paused {
   color: #ffc107; /* Yellow */
   animation: none;
 }
 
-.status-restarting {
+.restarting {
   animation: none;
   color: #17a2b8; /* Teal */
 }
 
-.status-exited {
+.exited {
   animation: none;
   color: #dc3545; /* Red */
 }
 
-.status-dead {
+.dead {
   animation: none;
   color: #343a40; /* Dark Gray */
 }
 
-.status-removing {
+.removing {
   animation: none;
   color: #fd7e14; /* Orange */
 }
 
-.status-unknown {
+.unknown {
   animation: none;
   color: #6c757d; /* Gray */
 }
