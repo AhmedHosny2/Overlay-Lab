@@ -76,3 +76,7 @@ _[Ss]cripts
 
 # 
 todo.txt
+
+appsettings.json
+/appsettings.Development.json
+

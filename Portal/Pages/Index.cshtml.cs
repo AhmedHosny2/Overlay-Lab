@@ -7,10 +7,11 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Docker.DotNet;
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Authorization;
 
 
 namespace Portal.Pages;
-
+[Authorize]
 public class IndexModel : PageModel
 {
     // private readonly ILogger<IndexModel> _logger;

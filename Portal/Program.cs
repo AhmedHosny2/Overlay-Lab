@@ -1,4 +1,6 @@
 
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using Microsoft.Identity.Web;
 using Portal.DeploymentService.Class;
 using Portal.DeploymentService.Interface;
 
@@ -10,8 +12,19 @@ builder.Services.AddSession();
 builder.Services.AddDistributedMemoryCache();
 // dependency injection  for DeploymentService
 builder.Services.AddSingleton<IDeploymentService, DeploymentService>();
-var app = builder.Build();
 
+
+// Configure Azure AD authentication
+builder.Services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
+    .AddMicrosoftIdentityWebApp(builder.Configuration.GetSection("AzureAd"));
+
+// Configure authorization
+builder.Services.AddAuthorization(options =>
+{
+    options.FallbackPolicy = options.DefaultPolicy;
+});
+
+var app = builder.Build();
 
 
 // Add CSP middleware to disallow inline JavaScript
