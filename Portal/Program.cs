@@ -1,6 +1,7 @@
 
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.Identity.Web;
+using Microsoft.Identity.Web.UI;
 using Portal.DeploymentService.Class;
 using Portal.DeploymentService.Interface;
 
@@ -15,14 +16,16 @@ builder.Services.AddSingleton<IDeploymentService, DeploymentService>();
 
 
 // Configure Azure AD authentication
-builder.Services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
-    .AddMicrosoftIdentityWebApp(builder.Configuration.GetSection("AzureAd"));
+builder.Services.AddRazorPages()
+    .AddMicrosoftIdentityUI();
+// builder.Services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
+//     .AddMicrosoftIdentityWebApp(builder.Configuration.GetSection("AzureAd"));
 
 // Configure authorization
-builder.Services.AddAuthorization(options =>
-{
-    options.FallbackPolicy = options.DefaultPolicy;
-});
+// builder.Services.AddAuthorization(options =>
+// {
+//     options.FallbackPolicy = options.DefaultPolicy;
+// });
 
 var app = builder.Build();
 
@@ -49,7 +52,9 @@ app.UseHttpsRedirection();
 
 app.UseRouting();
 
-app.UseAuthorization();
+// app.UseAuthentication();
+
+// app.UseAuthorization();
 
 app.MapStaticAssets();
 app.MapRazorPages()
