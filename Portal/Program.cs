@@ -8,25 +8,31 @@ using Portal.DeploymentService.Interface;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddRazorPages();
+builder.Services.AddRazorPages()
+    .AddMicrosoftIdentityUI();
+
 builder.Services.AddSession();
 builder.Services.AddDistributedMemoryCache();
 // dependency injection  for DeploymentService
 builder.Services.AddSingleton<IDeploymentService, DeploymentService>();
 
 
-// Configure Azure AD authentication
-builder.Services.AddRazorPages()
-    .AddMicrosoftIdentityUI();
-// builder.Services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
-//     .AddMicrosoftIdentityWebApp(builder.Configuration.GetSection("AzureAd"));
+// this one should be code flow not normal token flow
 
-// Configure authorization
+// builder.Services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
+//     .AddMicrosoftIdentityWebApp(builder.Configuration.GetSection("AzureAd")); 
 // builder.Services.AddAuthorization(options =>
 // {
 //     options.FallbackPolicy = options.DefaultPolicy;
 // });
+// let's do the code flow
+  //  No reply address is registered for the application 
+    // TODO fix this 
+builder.Services.AddMicrosoftIdentityWebAppAuthentication(builder.Configuration, "AzureAd")
+    .EnableTokenAcquisitionToCallDownstreamApi(new string[] { "user.read" })
+    .AddInMemoryTokenCaches();
 
+  
 var app = builder.Build();
 
 
@@ -53,7 +59,6 @@ app.UseHttpsRedirection();
 app.UseRouting();
 
 // app.UseAuthentication();
-
 // app.UseAuthorization();
 
 app.MapStaticAssets();
@@ -61,3 +66,4 @@ app.MapRazorPages()
    .WithStaticAssets();
 
 app.Run();
+
