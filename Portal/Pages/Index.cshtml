@@ -45,7 +45,7 @@
                                 @foreach (var container in Model.Containers)
                                 {
                                     <tr>
-                                        <td><a href="/Containers/IDEToDocker"> @container.InstanceId</a>
+                                        <td><a href="/Containers/GetContainerDetails/@container.InstanceId"> @container.InstanceId</a>
 
                                         </td>
                                         <td>@container.ServerType</td>
