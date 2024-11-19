@@ -167,14 +167,14 @@ namespace Portal.DeploymentService.Class
                 foreach (var container in containers)
                 {
 
-                        // log everything about the ip 
-                        foreach (var network in container.NetworkSettings.Networks)
-                        {
-                            Console.WriteLine($"Network: {network.Key}");
-                            Console.WriteLine($"IP Address: {network.Value.IPAddress}");
-                            Console.WriteLine($"Gateway: {network.Value.Gateway}");
-                            Console.WriteLine($"Mac Address: {network.Value.MacAddress}");
-                        }
+                    // log everything about the ip 
+                    foreach (var network in container.NetworkSettings.Networks)
+                    {
+                        Console.WriteLine($"Network: {network.Key}");
+                        Console.WriteLine($"IP Address: {network.Value.IPAddress}");
+                        Console.WriteLine($"Gateway: {network.Value.Gateway}");
+                        Console.WriteLine($"Mac Address: {network.Value.MacAddress}");
+                    }
 
                     var firstNetwork = container.NetworkSettings.Networks.Values.FirstOrDefault();
 
@@ -214,7 +214,52 @@ namespace Portal.DeploymentService.Class
                 return new List<ServerInstance>();
             }
         }
+        // get container details
+        public async Task<ServerInstance> GetContainerDetails(DockerClient client, string ContainerId)
+        {
 
+            Console.WriteLine("Getting container details");
+            try
+            {
+                var containerDetails = await client.Containers.InspectContainerAsync(ContainerId);
+                ServerInstance container = new ServerInstance(containerDetails);
+
+                // var firstNetwork = containerDetails.NetworkSettings.Networks.Values.FirstOrDefault();
+
+                // if (firstNetwork != null)
+                // {
+                //     // Get the private IP address from the first network
+                //     var privateIP = firstNetwork.IPAddress;
+
+                //     // Get the public port if available, else assign "No port"
+                //     string port = "No port";
+                //     // get port from config 
+                //     if (containerDetails.Config.ExposedPorts != null && containerDetails.Config.ExposedPorts.Count > 0)
+                //     {
+                //         port = containerDetails.Config.ExposedPorts.Keys.ToString();
+                //     }
+
+                //     // Add container details to the list of ServerInstance
+                //     container = new ServerInstance
+                //     {
+                //         Name = containerDetails.Name,
+                //         InstanceId = containerDetails.ID.Substring(0, 5),
+                //         ServerType = containerDetails.Image.Split("@sha256")[0],
+                //         Status = containerDetails.State.Status,
+                //         IpAddress = privateIP,
+                //         Port = port,
+                //         Created = containerDetails.Created
+                //     };
+                // }
+                Console.WriteLine("Container details retrieved successfully");
+                return container;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Error: " + e.Message);
+                return null;
+            }
+        }
         // run container
         public async Task RunContainer(DockerClient client, string ContainerId)
         {
