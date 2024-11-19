@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.Authorization;
 
 
 namespace Portal.Pages;
-[Authorize]
+// [Authorize]
 public class IndexModel : PageModel
 {
     // private readonly ILogger<IndexModel> _logger;
