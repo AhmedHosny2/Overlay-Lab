@@ -8,6 +8,7 @@ using Portal.DeploymentService.Interface;
 using Portal.Models;
 
 namespace Portal.DeploymentService.Class
+
 {
     public class DeploymentService : IDeploymentService
     {
@@ -72,16 +73,69 @@ namespace Portal.DeploymentService.Class
         }
 
         // create container
-        public async Task<string> CreateContainer(DockerClient client, string ImageName, string DeploymentName)
+        // we simply create container for the current user 
+        //TODO add method to attach user to  a docker 
+        // so do we call the same method and internally either create a container or resume another one ? 
+        // if we will create new one then we must add the cur user in the a new user list in the labels 
+        // else we will just resume another container then we just need to resume it and add the user to the list
+        // lastly if the user is on the list so we will return the existing container already 
+        // TODO we need to know how will we handle either to create a new container or let him use existing one 
+        // for now if the container image exit and health we will return it 
+        // so our key is the image type now 
+        public async Task<string> CreateContainerOrAddUser(DockerClient client, string ImageName, string UserName)
         {
 
+            Task<IList<ServerInstance>> ContainerList = ListContainers(client);
+
+            foreach (var container in ContainerList.Result)
+            {
+                // TODO later this will be more complex 
+                // we have to take the decision based either create new container or use the existing one
+                // for now i just check the image name 
+                if (container.ServerType == ImageName)
+                {
+                    if (container.ConfigLabels.ContainsKey("users"))
+                    {
+                        // check if the user in the list 
+                        if (container.ConfigLabels["users"].Contains(UserName))
+                        {
+                            Console.WriteLine("User already in the list");
+                            return container.InstanceId;
+                        }
+                        else
+                        {
+                            Console.WriteLine("User not in the list");
+                            // if not then add him
+                            container.ConfigLabels["users"] += "," + UserName;
+                            return container.InstanceId;
+                        }
+
+                    }
 
 
+                }
+                else
+                {
+                    Console.WriteLine("Image not found");
+                    // create new container 
+                    return await CreateContainer(client, ImageName, UserName);
+                }
+            }
+            return string.Empty;
+
+        }
+
+
+        public async Task<string> CreateContainer(DockerClient client, string ImageName, string UserName)
+        {
             var CreatedContainer = new CreateContainerResponse();
+
+
+
             var hostConfig = new HostConfig
             {
                 PortBindings = new Dictionary<string, IList<PortBinding>>
-    {
+        {
         {
             "80/tcp", // Container port 
             // 2-TODO  do i need to add this ?
@@ -107,8 +161,13 @@ namespace Portal.DeploymentService.Class
                 AttachStdin = true,
                 AttachStdout = true,
                 AttachStderr = true,
+                // add users lists 
+                Labels = new Dictionary<string, string> { { "users", UserName } },
+
+                //  IDictionary<string, string> Labels 
                 // create container with sudo privilages and sleep infinity 
                 Cmd = new List<string> { "/bin/sh", "-c", "sleep infinity" },
+                //i wanna add a list of users who can acess this container 
 
                 ExposedPorts = new Dictionary<string, EmptyStruct>
             {
@@ -119,14 +178,9 @@ namespace Portal.DeploymentService.Class
             string timestamp = DateTime.UtcNow.ToString("o"); // ISO 8601 format for timestamp
                                                               // check if name in use so add random number to it
 
-            var random = new Random();
-            DeploymentName += random.Next(1, 1000).ToString();
-            // replcae spaces with -
-            DeploymentName = DeploymentName.Replace(" ", "-");
             var createContainerParameters = new CreateContainerParameters(config)
             {
                 HostConfig = hostConfig,
-                Name = DeploymentName,
                 Labels = new Dictionary<string, string>
                 {
                     { "created_at", timestamp } // Add timestamp as a label
