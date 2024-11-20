@@ -18,7 +18,7 @@
 <body>
     <div class="container mt-5">
         <div class="text-center mb-4">
-            <h1 class="display-4">Welcome!!</h1>
+            <h1 class="display-4">Welcome @Model.UserName</h1>
         </div>
 
         <!-- Display Containers List -->
@@ -45,7 +45,8 @@
                                 @foreach (var container in Model.Containers)
                                 {
                                     <tr>
-                                        <td><a href="/Containers/GetContainerDetails/@container.InstanceId"> @container.InstanceId</a>
+                                        <td><a href="/Containers/GetContainerDetails/@container.InstanceId">
+                                                @container.InstanceId</a>
 
                                         </td>
                                         <td>@container.ServerType</td>
@@ -92,9 +93,10 @@
         crossorigin="anonymous"></script>
     <script src="~/js/site.js"></script> <!-- Custom JavaScript file -->
 
-</body>     
+</body>
 @*  add inline js do alert  *@
 <script>
     alert("Take Care inline js is not good practice");
 </script>
+
 </html>
