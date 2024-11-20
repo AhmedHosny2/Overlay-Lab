@@ -82,7 +82,7 @@ namespace Portal.DeploymentService.Class
         // TODO we need to know how will we handle either to create a new container or let him use existing one 
         // for now if the container image exit and health we will return it 
         // so our key is the image type now 
-        public async Task<string> CreateContainerOrAddUser(DockerClient client, string ImageName, string UserName)
+        public async Task<string> CreateContainerOrAddUser(DockerClient client, string ImageName, string Uid)
         {
 
             Task<IList<ServerInstance>> ContainerList = ListContainers(client);
@@ -97,7 +97,7 @@ namespace Portal.DeploymentService.Class
                     if (container.ConfigLabels.ContainsKey("users"))
                     {
                         // check if the user in the list 
-                        if (container.ConfigLabels["users"].Contains(UserName))
+                        if (container.ConfigLabels["users"].Contains(Uid))
                         {
                             Console.WriteLine("User already in the list");
                             return container.InstanceId;
@@ -106,7 +106,7 @@ namespace Portal.DeploymentService.Class
                         {
                             Console.WriteLine("User not in the list");
                             // if not then add him
-                            container.ConfigLabels["users"] += "," + UserName;
+                            container.ConfigLabels["users"] += "," + Uid;
                             return container.InstanceId;
                         }
 
@@ -118,7 +118,7 @@ namespace Portal.DeploymentService.Class
                 {
                     Console.WriteLine("Image not found");
                     // create new container 
-                    return await CreateContainer(client, ImageName, UserName);
+                    return await CreateContainer(client, ImageName, Uid);
                 }
             }
             return string.Empty;
@@ -126,7 +126,7 @@ namespace Portal.DeploymentService.Class
         }
 
 
-        public async Task<string> CreateContainer(DockerClient client, string ImageName, string UserName)
+        public async Task<string> CreateContainer(DockerClient client, string ImageName, string Uid)
         {
             var CreatedContainer = new CreateContainerResponse();
 
@@ -162,7 +162,7 @@ namespace Portal.DeploymentService.Class
                 AttachStdout = true,
                 AttachStderr = true,
                 // add users lists 
-                Labels = new Dictionary<string, string> { { "users", UserName } },
+                Labels = new Dictionary<string, string> { { "users", Uid } },
 
                 //  IDictionary<string, string> Labels 
                 // create container with sudo privilages and sleep infinity 
