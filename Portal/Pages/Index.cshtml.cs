@@ -42,20 +42,12 @@ public class IndexModel : PageModel
         Containers = await _deploymentService.ListContainers(_dockerClient);
         UserName = User.FindFirst("name")?.Value.Split(",")[0] ?? string.Empty;
 
-        foreach (var claim in User.Claims)
-        {
-            _logger.LogInformation($"Claim Type: {claim.Type} - Claim Value: {claim.Value}");
-        }
+        // foreach (var claim in User.Claims)
+        // {
+        //     _logger.LogInformation($"Claim Type: {claim.Type} - Claim Value: {claim.Value}");
+        // }
     }
-    // public void OnGet()
-    // {
-    //      // print everything about the user 
-    //     foreach (var claim in User.Claims)
-    //     {
-    //         _logger.LogInformation($"Claim Type: {claim.Type} - Claim Value: {claim.Value}");
-    //     }
-
-    // }
+   
     public async Task<RedirectToPageResult> OnPostPauseInstance(string instanceId)
 
     {
