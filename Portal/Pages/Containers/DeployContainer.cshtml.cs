@@ -8,6 +8,12 @@ using System.ComponentModel.DataAnnotations;
 
 namespace MyApp.Namespace
 {
+    public class ImageConfig
+    {
+        public string Name { get; set; }
+        public string? Port { get; set; }
+    }
+
     public class DeployContainerModel : PageModel
     {
         private readonly IDeploymentService _deploymentService;
@@ -16,18 +22,15 @@ namespace MyApp.Namespace
         private DockerClient _dockerClient;
 
 
-        [BindProperty]
-        [Required(ErrorMessage = "Deployment Name is required.")]
-        [RegularExpression(@"^[a-zA-Z]+$", ErrorMessage = "Deployment Name must contain only English letters.")]
-
-        public string? DeploymentName { get; set; }
 
         [BindProperty]
         [Required(ErrorMessage = "Image Name is required.")]
         public string ImageName { get; set; } = string.Empty;
+        public int ImagePort { get; set; } = -1;
 
-        public Dictionary<string, string> Images { get; set; }
 
+        public Dictionary<string, ImageConfig> Images { get; set; }
+        public IEnumerable<string> ImageNames { get; set; }
         public DeployContainerModel(IDeploymentService deploymentService, IConfiguration configuration, ILogger<DeployContainerModel> logger)
         {
             _deploymentService = deploymentService;
@@ -36,7 +39,9 @@ namespace MyApp.Namespace
             _dockerClient = _deploymentService.ConnectToDocker();
 
             // Load the image names list from the config file
-            Images = _configuration.GetSection("DockerImages").Get<Dictionary<string, string>>() ?? new Dictionary<string, string>();
+            Images = _configuration.GetSection("DockerImages").Get<Dictionary<string, ImageConfig>>() ?? new Dictionary<string, ImageConfig>();
+            // now set image name list 
+            ImageNames = Images.Keys;
         }
 
         public void OnGet()
@@ -47,6 +52,7 @@ namespace MyApp.Namespace
         // DeployInstance is the function name triggered with the deploy button in the UI
         public async Task<IActionResult> OnPostDeployInstance()
         {
+            _logger.LogDebug("hellllllo");
             // Check if the model is valid
             if (!ModelState.IsValid)
             {
@@ -73,18 +79,23 @@ namespace MyApp.Namespace
         // Main function to run the docker commands
         private async Task DeployContainerAsync()
         {
+            _logger.LogInformation("Deploying container with image: {ImageName}", ImageName);
             // Validate ImageName input
             if (string.IsNullOrEmpty(ImageName) || !Images.ContainsKey(ImageName))
             {
                 throw new ArgumentException("Invalid image name provided.");
             }
 
-            // Map the image key to the value
-            string mappedImageName = Images[ImageName];
-            _logger.LogInformation("Deploying container with image: {Image}", mappedImageName);
+            // Map the image key to the value of the image key 
+            string mappedImage = Images[ImageName].Name;
+            string? port = Images[ImageName].Port;
+
+            _logger.LogInformation("Deploying container with image: {Image}", mappedImage);
+            _logger.LogInformation("Deploying container with port: {Image}", port);
+
 
             // Create the container
-            string createdContainerId = await _deploymentService.CreateContainer(_dockerClient, mappedImageName, DeploymentName ?? "default-container");
+            string createdContainerId = await _deploymentService.CreateContainer(_dockerClient, ImageName,  User.FindFirst("uid")?.Value ,port ?? "");
 
             // Store the created container id in the session
             try
@@ -98,7 +109,7 @@ namespace MyApp.Namespace
             }
 
             // Start the container
-            await _deploymentService.RunContainer(_dockerClient, createdContainerId);
+            // await _deploymentService.RunContainer(_dockerClient, createdContainerId);
         }
     }
 }

@@ -82,7 +82,7 @@ namespace Portal.DeploymentService.Class
         // TODO we need to know how will we handle either to create a new container or let him use existing one 
         // for now if the container image exit and health we will return it 
         // so our key is the image type now 
-        public async Task<string> CreateContainerOrAddUser(DockerClient client, string ImageName, string Uid)
+        public async Task<string> CreateContainerOrAddUser(DockerClient client, string ImageName, string Uid, string port)
         {
 
             Task<IList<ServerInstance>> ContainerList = ListContainers(client);
@@ -118,7 +118,7 @@ namespace Portal.DeploymentService.Class
                 {
                     Console.WriteLine("Image not found");
                     // create new container 
-                    return await CreateContainer(client, ImageName, Uid);
+                    return await CreateContainer(client, ImageName, Uid, port);
                 }
             }
             return string.Empty;
@@ -126,81 +126,103 @@ namespace Portal.DeploymentService.Class
         }
 
 
-        public async Task<string> CreateContainer(DockerClient client, string ImageName, string Uid)
+        public async Task<string> CreateContainer(DockerClient client, string imageName, string uid, string port)
         {
-            var CreatedContainer = new CreateContainerResponse();
+            await CheckOrCreateImage(client, imageName);
+            // Log the input parameters
+            Console.WriteLine($"Image Name: {imageName}, UID: {uid}, Port: {port}");
 
-
-
+            // Define port bindings to map host port to container port
             var hostConfig = new HostConfig
             {
+                // Removed AutoRemove to keep the container after it stops
                 PortBindings = new Dictionary<string, IList<PortBinding>>
         {
-        {
-            "80/tcp", // Container port 
-            // 2-TODO  do i need to add this ?
-            new List<PortBinding>
             {
-                new PortBinding
+                $"{port}/tcp", // Container port
+                new List<PortBinding>
                 {
-                    HostPort = "" // Leave empty to let Docker assign a dynamic port
+                    new PortBinding
+                    {
+                        HostPort = port // Host port (no "/tcp" needed)
+                    }
                 }
             }
         }
-    }
             };
 
-            // set container properties
+            // Configure container settings
             var config = new Config
-
             {
+                Image = imageName,
 
-                Image = ImageName,
-                Tty = false,
+                // Allocate a pseudo-TTY (-t)
+                Tty = true,
+
+                // Keep STDIN open even if not attached (-i)
                 OpenStdin = true,
+
+                // Attach STDIN, STDOUT, and STDERR
                 AttachStdin = true,
                 AttachStdout = true,
                 AttachStderr = true,
-                // add users lists 
-                Labels = new Dictionary<string, string> { { "users", Uid } },
 
-                //  IDictionary<string, string> Labels 
-                // create container with sudo privilages and sleep infinity 
-                Cmd = new List<string> { "/bin/sh", "-c", "sleep infinity" },
-                //i wanna add a list of users who can acess this container 
+                // Add labels (e.g., user identifier)
+                Labels = new Dictionary<string, string>
+        {
+            { "users", uid }
+        },
 
+                // Expose the specified port
                 ExposedPorts = new Dictionary<string, EmptyStruct>
-            {
-                { "80/tcp", new EmptyStruct() }
-            }
+        {
+            { $"{port}/tcp", new EmptyStruct() }
+        },
 
+                // Set the command to run.
+                // If you want to use the image's default CMD, you can omit this.
+                // Here, it's set to keep the container running indefinitely.
+                // Cmd = new List<string> { "/bin/sh", "-c", "sleep infinity" }
             };
-            string timestamp = DateTime.UtcNow.ToString("o"); // ISO 8601 format for timestamp
-                                                              // check if name in use so add random number to it
 
+            // Add additional labels, such as a creation timestamp
+            string timestamp = DateTime.UtcNow.ToString("o"); // ISO 8601 format
             var createContainerParameters = new CreateContainerParameters(config)
             {
                 HostConfig = hostConfig,
                 Labels = new Dictionary<string, string>
-                {
-                    { "created_at", timestamp } // Add timestamp as a label
-                }
+        {
+            { "created_at", timestamp }
+        }
             };
 
-            Console.WriteLine("Creating container");
+            Console.WriteLine("Creating container...");
             try
             {
-                CreatedContainer = await client.Containers.CreateContainerAsync(createContainerParameters);
-                Console.WriteLine("Container created successfully");
-                return CreatedContainer.ID;
+                // Create the container
+                var createdContainer = await client.Containers.CreateContainerAsync(createContainerParameters);
+                Console.WriteLine($"Container created successfully with ID: {createdContainer.ID}");
+
+                // Start the container immediately after creation
+                bool started = await client.Containers.StartContainerAsync(createdContainer.ID, new ContainerStartParameters());
+                if (started)
+                {
+                    Console.WriteLine("Container started successfully.");
+                }
+                else
+                {
+                    Console.WriteLine("Failed to start the container.");
+                    return string.Empty;
+                }
+
+                return createdContainer.ID;
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                Console.WriteLine("Error: " + e.Message);
+                Console.WriteLine($"Error creating container: {ex.Message}");
                 return string.Empty;
             }
         }
-
         // list containers
         public async Task<IList<ServerInstance>> ListContainers(DockerClient client)
         {
@@ -221,14 +243,7 @@ namespace Portal.DeploymentService.Class
                 foreach (var container in containers)
                 {
 
-                    // log everything about the ip 
-                    foreach (var network in container.NetworkSettings.Networks)
-                    {
-                        Console.WriteLine($"Network: {network.Key}");
-                        Console.WriteLine($"IP Address: {network.Value.IPAddress}");
-                        Console.WriteLine($"Gateway: {network.Value.Gateway}");
-                        Console.WriteLine($"Mac Address: {network.Value.MacAddress}");
-                    }
+
 
                     var firstNetwork = container.NetworkSettings.Networks.Values.FirstOrDefault();
 

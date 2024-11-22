@@ -14,21 +14,21 @@
 
             <form method="post" asp-page-handler="DeployInstance" class="form-group">
                 <!-- Deployment Name Field -->
-                <div class="form-group mb-3">
+                @* <div class="form-group mb-3">
                     <label for="DeploymentName" class="form-label">Deployment Name</label>
                     <input type="text" class="form-control" id="DeploymentName" name="DeploymentName"
                         placeholder="Enter Deployment Name" asp-for="DeploymentName" />
                     <span asp-validation-for="DeploymentName" class="text-danger"></span>
-                </div>
+                </div> *@
 
                 <!-- Docker Image Selection Field -->
                 <div class="form-group mb-3">
                     <label for="ImageName" class="form-label">Select Docker Image</label>
                     <select class="form-control" id="ImageName" name="ImageName" asp-for="ImageName">
                         <option value="">-- Select an Image --</option>
-                        @foreach (var image in Model.Images)
+                        @foreach (var image in Model.ImageNames)
                         {
-                            <option value="@image.Key">@image.Value</option>
+                            <option value="@image">@image</option>
 
 
                         }
@@ -50,7 +50,7 @@
     </div>
 </div>
 
-@section Scripts {
+@* @section Scripts {
     <!-- Optional: Include client-side validation scripts -->
     <partial name="_ValidationScriptsPartial" />
-}
+} *@
