@@ -49,11 +49,13 @@ h2 {
 /* Status Specific Classes */
 .created {
   /* activate animation  */
+  animation: none;
 
   color: #6c757d; /* Gray */
 }
 
 .running {
+  animation: none;
   color: #28a745; /* Green */
 }
 
