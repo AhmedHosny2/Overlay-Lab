@@ -105,7 +105,7 @@ namespace MyApp.Namespace
                 return value.ToString();
             }
         }
-        
+
 
         // DeployInstance is the function name triggered with the deploy button in the UI
 
