@@ -11,15 +11,15 @@ namespace Portal.DeploymentService.Interface
 {
     public interface IDeploymentService
     {
-        public DockerClient ConnectToDocker();
-        public Task CheckOrCreateImage(DockerClient client, string ImageName);
-        public Task<string> CreateContainerOrAddUser(DockerClient client, string ImageName, string Uid, string port);
-        public Task<string> CreateContainer(DockerClient client, string ImageName, string Uid, string port);
-        public Task<IList<ServerInstance>> ListContainers(DockerClient client);
-        public Task<ServerInstance> GetContainerDetails(DockerClient client, string ContainerId);
-        public Task RunContainer(DockerClient client, string ContainerId);
+        public DockerClient CreateDockerClient();
+        public Task EnsureDockerImageExists(DockerClient client, string ImageName);
+        public Task<string> GetOrCreateContainerForUser(DockerClient client, string ImageName, string Uid, string port);
+        public Task<string> InitializeContainer(DockerClient client, string ImageName, string Uid, string port);
+        public Task<IList<ServerInstance>> ListContainers(DockerClient client,string Uid);
+        public Task<ServerInstance> FetchContainerDetails(DockerClient client, string ContainerId,string Uid);
+        public Task StartContainer(DockerClient client, string ContainerId);
 
-        public Task<StringBuilder> ExecuteCommand(DockerClient client, List<string> Command, string ContainerId);
+        public Task<StringBuilder> RunCommandInContainer(DockerClient client, List<string> Command, string ContainerId);
         public Task PauseContainer(DockerClient client, string ContainerId);
         // todo delete container 
     }

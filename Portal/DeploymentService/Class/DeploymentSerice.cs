@@ -1,103 +1,90 @@
-// create the class that implements the interface
+// Create the class that implements the interface
 using Docker.DotNet;
 using Docker.DotNet.Models;
-using System.Text;
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using Portal.DeploymentService.Interface;
 using Portal.Models;
 
 namespace Portal.DeploymentService.Class
-
 {
     public class DeploymentService : IDeploymentService
     {
-
-        // empty constructor
+        // Empty constructor
         public DeploymentService()
         {
-
         }
-
-        // create a new DockerClient object 
-        public DockerClient ConnectToDocker()
+        // create docker client using unix socket
+        public DockerClient CreateDockerClient()
         {
-            DockerClient client = new DockerClientConfiguration(
-          new Uri("unix:///var/run/docker.sock"))
-           .CreateClient();
+            DockerClient client = new DockerClientConfiguration(new Uri("unix:///var/run/docker.sock"))
+                .CreateClient();
             return client;
         }
-        // check or create image 
-        public async Task CheckOrCreateImage(DockerClient client, string ImageName)
-        {
 
-            IList<ImagesListResponse> images = await client.Images.ListImagesAsync(new ImagesListParameters()
+        // Check or create image
+        public async Task EnsureDockerImageExists(DockerClient client, string imageName)
+        {
+            IList<ImagesListResponse> images = await client.Images.ListImagesAsync(new ImagesListParameters
             {
-                Filters = new Dictionary<string, IDictionary<string, bool>>()
-            {
+                Filters = new Dictionary<string, IDictionary<string, bool>>
                 {
-                    "reference", new Dictionary<string, bool>()
                     {
-                        { ImageName, true }
+                        "reference", new Dictionary<string, bool>
+                        {
+                            { imageName, true } // get images with the specified name
+                        }
                     }
                 }
-            }
             });
+            // if image doesn't exit so fetch it
             if (images.Count == 0)
             {
-                Console.WriteLine("Pulling image ", ImageName);
+                Console.WriteLine($"Pulling image {imageName}");
                 try
                 {
                     await client.Images.CreateImageAsync(
-                new ImagesCreateParameters
-                {
-                    FromImage = ImageName,
-                    Tag = "latest",
-                },
-                null, // 1- TODO: add your auth details 
-                new Progress<JSONMessage>());
+                        new ImagesCreateParameters
+                        {
+                            FromImage = imageName,
+                            Tag = "latest",
+                        },
+                        null, // TODO: Add your auth details
+                        new Progress<JSONMessage>());
                     Console.WriteLine("Image pulled successfully");
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine("Error: " + e.Message);
+                    Console.WriteLine($"Error: {e.Message}");
                 }
-
             }
-
             else
             {
-
-                Console.WriteLine("Image found: ");
+                Console.WriteLine("Image found");
             }
         }
 
-        // create container
-        // we simply create container for the current user 
-        //TODO add method to attach user to  a docker 
-        // so do we call the same method and internally either create a container or resume another one ? 
-        // if we will create new one then we must add the cur user in the a new user list in the labels 
-        // else we will just resume another container then we just need to resume it and add the user to the list
-        // lastly if the user is on the list so we will return the existing container already 
-        // TODO we need to know how will we handle either to create a new container or let him use existing one 
-        // for now if the container image exit and health we will return it 
-        // so our key is the image type now 
-        public async Task<string> CreateContainerOrAddUser(DockerClient client, string ImageName, string Uid, string port)
+        // Create container or add user
+        // each time user tries to connect/deploy to the container, this method will be called
+        public async Task<string> GetOrCreateContainerForUser(DockerClient client, string imageName, string Uid, string port)
         {
-
-            Task<IList<ServerInstance>> ContainerList = ListContainers(client);
-
-            foreach (var container in ContainerList.Result)
+            IList<ServerInstance> containersList = await ListContainers(client, Uid);
+            Console.WriteLine("$imageName: {imageName}, Uid: {Uid}, port: {port}");
+            foreach (var container in containersList)
             {
-                // TODO later this will be more complex 
-                // we have to take the decision based either create new container or use the existing one
-                // for now i just check the image name 
-                if (container.ServerType == ImageName)
+                Console.WriteLine($"Container: {container.InstanceId}, Image: {container.ServerType}, Users: {container.ConfigLabels["users"]}");
+                // TODO: Implement more complex logic for container selection
+                if (container.ServerType.Equals(imageName, StringComparison.OrdinalIgnoreCase))
                 {
                     if (container.ConfigLabels.ContainsKey("users"))
                     {
-                        // check if the user in the list 
-                        if (container.ConfigLabels["users"].Contains(Uid))
+                        // Check if the user is already in the list
+                        var users = container.ConfigLabels["users"].Split(',');
+                        if (users.Contains(Uid))
                         {
                             Console.WriteLine("User already in the list");
                             return container.InstanceId;
@@ -105,80 +92,65 @@ namespace Portal.DeploymentService.Class
                         else
                         {
                             Console.WriteLine("User not in the list");
-                            // if not then add him
-                            container.ConfigLabels["users"] += "," + Uid;
+                            // Add user to the list
+                            container.ConfigLabels["users"] += $",{Uid}";
                             return container.InstanceId;
                         }
-
                     }
-
-
                 }
                 else
                 {
                     Console.WriteLine("Image not found");
-                    // create new container 
-                    return await CreateContainer(client, ImageName, Uid, port);
+                    // Create new container
+                    return await InitializeContainer(client, imageName, Uid, port);
                 }
             }
-            return string.Empty;
 
+            return string.Empty;
         }
 
-
-        public async Task<string> CreateContainer(DockerClient client, string imageName, string uid, string port)
+        // Create a new container
+        public async Task<string> InitializeContainer(DockerClient client, string imageName, string Uid, string port)
         {
-            await CheckOrCreateImage(client, imageName);
+            await EnsureDockerImageExists(client, imageName);
+
             // Log the input parameters
-            Console.WriteLine($"Image Name: {imageName}, UID: {uid}, Port: {port}");
+            Console.WriteLine($"Image Name: {imageName}, UID: {Uid}, Port: {port}");
 
             // Define port bindings to map host port to container port
             var hostConfig = new HostConfig
             {
-                // Removed AutoRemove to keep the container after it stops
                 PortBindings = new Dictionary<string, IList<PortBinding>>
-        {
-            {
-                $"{port}/tcp", // Container port
-                new List<PortBinding>
                 {
-                    new PortBinding
                     {
-                        HostPort = port // Host port (no "/tcp" needed)
+                        $"{port}/tcp", new List<PortBinding>
+                        {
+                            new PortBinding
+                            {
+                                HostPort = port // Host port (no "/tcp" needed)
+                            }
+                        }
                     }
                 }
-            }
-        }
             };
 
             // Configure container settings
             var config = new Config
             {
                 Image = imageName,
-
-                // Allocate a pseudo-TTY (-t)
-                Tty = true,
-
-                // Keep STDIN open even if not attached (-i)
-                OpenStdin = true,
-
-                // Attach STDIN, STDOUT, and STDERR
+                Tty = true, // Allocate a pseudo-TTY (-t)
+                OpenStdin = true, // Keep STDIN open even if not attached (-i)
                 AttachStdin = true,
                 AttachStdout = true,
                 AttachStderr = true,
-
-                // Add labels (e.g., user identifier)
                 Labels = new Dictionary<string, string>
-        {
-            { "users", uid }
-        },
-
-                // Expose the specified port
+                {
+                    { "users", Uid }
+                },
                 ExposedPorts = new Dictionary<string, EmptyStruct>
-        {
-            { $"{port}/tcp", new EmptyStruct() }
-        },
-
+                {
+                    { $"{port}/tcp", new EmptyStruct() }
+                },
                 // Set the command to run.
                 // If you want to use the image's default CMD, you can omit this.
                 // Here, it's set to keep the container running indefinitely.
@@ -191,9 +163,9 @@ namespace Portal.DeploymentService.Class
             {
                 HostConfig = hostConfig,
                 Labels = new Dictionary<string, string>
-        {
-            { "created_at", timestamp }
-        }
+                {
+                    { "created_at", timestamp }
+                }
             };
 
             Console.WriteLine("Creating container...");
@@ -223,31 +195,34 @@ namespace Portal.DeploymentService.Class
                 return string.Empty;
             }
         }
-        // list containers
-        public async Task<IList<ServerInstance>> ListContainers(DockerClient client)
+
+        // List containers
+
+        public async Task<IList<ServerInstance>> ListContainers(DockerClient client, string Uid)
         {
-            IList<ServerInstance> Containers = new List<ServerInstance>();
-            Console.WriteLine("Listing containers");
+            IList<ServerInstance> containersList = new List<ServerInstance>();
+            Console.WriteLine("Listing containers...");
             try
             {
-                IList<ContainerListResponse> containers = await client.Containers.ListContainersAsync(
-                    // flag to show ports 
-
-                    new ContainersListParameters()
+                IList<ContainerListResponse> containers = await client.Containers.ListContainersAsync(new ContainersListParameters
+                {
+                    // only show container with label list users that contain the user id
+                    Filters = new Dictionary<string, IDictionary<string, bool>>
                     {
-                        All = true,
-                        // force docke  r to show all ports
+                        {
+                            "label", new Dictionary<string, bool>
+                            {
+                                { "users", true }
+                            }
+                        }
+                    }
+                });
 
-
-                    });
                 foreach (var container in containers)
                 {
-
-
-
                     var firstNetwork = container.NetworkSettings.Networks.Values.FirstOrDefault();
-
-                    if (firstNetwork != null)
+                    Console.WriteLine($"Container: {container.ID}, Image: {container.Image}, Users: {container.Labels["users"]}");
+                    if (firstNetwork != null && container.Labels["users"].Contains(Uid))
                     {
                         // Get the private IP address from the first network
                         var privateIP = firstNetwork.IPAddress;
@@ -260,106 +235,87 @@ namespace Portal.DeploymentService.Class
                         }
 
                         // Add container details to the list of ServerInstance
-                        Containers.Add(
-                            new ServerInstance
-                            {
-                                Name = container.Names[0],
-                                InstanceId = container.ID.Substring(0, 5),
-                                ServerType = container.Image.Split("@sha256")[0],
-                                Status = container.State,
-                                IpAddress = privateIP,
-                                Port = port,
-                                Created = container.Created
-                            }
-                        );
+                        containersList.Add(new ServerInstance
+                        {
+                            Name = container.Names.FirstOrDefault() ?? "Unknown",
+                            InstanceId = container.ID.Substring(0, 5),
+                            ServerType = container.Image.Split("@sha256")[0],
+                            Status = container.State,
+                            IpAddress = privateIP,
+                            Port = port,
+                            Created = container.Created
+                        });
                     }
                 }
+
                 Console.WriteLine("Containers listed successfully");
-                return Containers;
+                return containersList;
             }
             catch (Exception e)
             {
-                Console.WriteLine("Error: " + e.Message);
+                Console.WriteLine($"Error: {e.Message}");
                 return new List<ServerInstance>();
             }
         }
-        // get container details
-        public async Task<ServerInstance> GetContainerDetails(DockerClient client, string ContainerId)
-        {
 
-            Console.WriteLine("Getting container details");
+        // Get container details
+        // todo only get needed details donext
+        public async Task<ServerInstance> FetchContainerDetails(DockerClient client, string containerId, string Uid)
+        {
+            Console.WriteLine("Getting container details...");
             try
             {
-                var containerDetails = await client.Containers.InspectContainerAsync(ContainerId);
+                var containerDetails = await client.Containers.InspectContainerAsync(containerId);
+                if (containerDetails.Config.Labels["users"].Contains(Uid))
+                {
+                    Console.WriteLine($"Container: {containerDetails.ID}, Image: {containerDetails.Image}, Users: {containerDetails.Config.Labels["users"]}");
+                }
+                else
+                {
+                    Console.WriteLine("User not in the list");
+                    throw new Exception("User not in the list");
+                }
                 ServerInstance container = new ServerInstance(containerDetails);
 
-                // var firstNetwork = containerDetails.NetworkSettings.Networks.Values.FirstOrDefault();
+                // Additional processing can be done here if needed
 
-                // if (firstNetwork != null)
-                // {
-                //     // Get the private IP address from the first network
-                //     var privateIP = firstNetwork.IPAddress;
-
-                //     // Get the public port if available, else assign "No port"
-                //     string port = "No port";
-                //     // get port from config 
-                //     if (containerDetails.Config.ExposedPorts != null && containerDetails.Config.ExposedPorts.Count > 0)
-                //     {
-                //         port = containerDetails.Config.ExposedPorts.Keys.ToString();
-                //     }
-
-                //     // Add container details to the list of ServerInstance
-                //     container = new ServerInstance
-                //     {
-                //         Name = containerDetails.Name,
-                //         InstanceId = containerDetails.ID.Substring(0, 5),
-                //         ServerType = containerDetails.Image.Split("@sha256")[0],
-                //         Status = containerDetails.State.Status,
-                //         IpAddress = privateIP,
-                //         Port = port,
-                //         Created = containerDetails.Created
-                //     };
-                // }
                 Console.WriteLine("Container details retrieved successfully");
                 return container;
             }
             catch (Exception e)
             {
-                Console.WriteLine("Error: " + e.Message);
+                Console.WriteLine($"Error: {e.Message}");
                 return null;
             }
         }
-        // run container
-        public async Task RunContainer(DockerClient client, string ContainerId)
+
+        // Run container
+        public async Task StartContainer(DockerClient client, string containerId)
         {
-            Console.WriteLine("Running container");
+            Console.WriteLine("Running container...");
             try
             {
-                await client.Containers.StartContainerAsync(
-                   ContainerId, new ContainerStartParameters());
+                await client.Containers.StartContainerAsync(containerId, new ContainerStartParameters());
                 Console.WriteLine("Container started successfully");
             }
             catch (Exception e)
             {
-                Console.WriteLine("Error: " + e.Message);
+                Console.WriteLine($"Error: {e.Message}");
             }
         }
 
-
-        // execute commands in the container that was created in the session
-
-        // 3- TODO not all commands will work with this method 
-        public async Task<StringBuilder> ExecuteCommand(DockerClient client, List<string> Command, string ContainerId)
+        // Execute commands in the container
+        // TODO: Not all commands will work with this method
+        public async Task<StringBuilder> RunCommandInContainer(DockerClient client, List<string> command, string containerId)
         {
-            Console.WriteLine($"Client: {client}, CreatedContainer: {ContainerId}, Command: {string.Join(" ", Command)}");
+            Console.WriteLine($"Client: {client}, Container ID: {containerId}, Command: {string.Join(" ", command)}");
             try
             {
                 // Build a single shell command string for complex operations
-                string shellCommand = Command != null ? string.Join(" ", Command) : ""
-                    ;
+                string shellCommand = command != null ? string.Join(" ", command) : string.Empty;
 
                 // Create the exec instance with the shell command
-                var execCreateResponse = await client.Exec.ExecCreateContainerAsync(ContainerId, new ContainerExecCreateParameters
+                var execCreateResponse = await client.Exec.ExecCreateContainerAsync(containerId, new ContainerExecCreateParameters
                 {
                     AttachStdin = true,
                     AttachStdout = true,
@@ -394,25 +350,25 @@ namespace Portal.DeploymentService.Class
             }
             catch (Exception e)
             {
-                Console.WriteLine("Error: " + e.Message);
+                Console.WriteLine($"Error: {e.Message}");
                 return new StringBuilder(e.Message);
             }
         }
 
-        // pause the container 
-        public async Task PauseContainer(DockerClient client, string ContainerId)
+        // Pause the container
+        // TODO check user id in run pause and stop container
+        public async Task PauseContainer(DockerClient client, string containerId)
         {
-            Console.WriteLine("Pausing container");
+            Console.WriteLine("Pausing container...");
             try
             {
-                await client.Containers.PauseContainerAsync(ContainerId);
+                await client.Containers.PauseContainerAsync(containerId);
                 Console.WriteLine("Container paused successfully");
             }
             catch (Exception e)
             {
-                Console.WriteLine("Error: " + e.Message);
+                Console.WriteLine($"Error: {e.Message}");
             }
         }
-
     }
 }
