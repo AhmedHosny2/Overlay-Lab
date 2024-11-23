@@ -14,7 +14,6 @@ namespace Portal.Pages;
 [Authorize]
 public class IndexModel : PageModel
 {
-    // private readonly ILogger<IndexModel> _logger;
     private readonly IDeploymentService _deploymentService;
     private DockerClient _dockerClient;
     private readonly ILogger<IndexModel> _logger;
@@ -22,7 +21,7 @@ public class IndexModel : PageModel
 
     [BindProperty]
     [Required(ErrorMessage = "Instance ID is required.")]
-    public string InstanceId { get; set; } = string.Empty;// To bind the InstanceId from the form
+    public string InstanceId { get; set; } = string.Empty;
 
     public IList<ServerInstance> Containers { get; set; } = new List<ServerInstance>();
 
@@ -42,30 +41,27 @@ public class IndexModel : PageModel
         Containers = await _deploymentService.ListContainers(_dockerClient);
         UserName = User.FindFirst("name")?.Value.Split(",")[0] ?? string.Empty;
 
+        // Log the claims for debugging
         // foreach (var claim in User.Claims)
         // {
         //     _logger.LogInformation($"Claim Type: {claim.Type} - Claim Value: {claim.Value}");
         // }
     }
-   
+
     public async Task<RedirectToPageResult> OnPostPauseInstance(string instanceId)
 
     {
         _logger.LogInformation($"Pausing container: {instanceId}");
 
-        Console.WriteLine(instanceId);
         try
         {
             await _deploymentService.PauseContainer(_dockerClient, instanceId);
             return RedirectToPage();
-
         }
         catch (Exception e)
         {
             _logger.LogError(e, $"Failed to pause container: {instanceId}");
             ModelState.AddModelError("", "There was an error pausing the container. Please try again later.");
-
-
             return RedirectToPage();
         }
     }
