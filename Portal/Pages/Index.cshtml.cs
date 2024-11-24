@@ -67,4 +67,18 @@ public class IndexModel : PageModel
             return RedirectToPage();
         }
     }
+    public async Task OnPostUsersList(string instanceId)
+    {
+        string initCommand = "cat users.txt";
+        // Split the string into an array of words (assuming space-separated commands)
+        var command = initCommand.Split(' ')  // Converts the string into a collection of strings
+                                 .Where(x => x != null) // Filters out null strings (if any)
+                                 .Select(x => x!)      // Ensures non-null values for compiler safety
+                                 .ToList();
+
+        _logger.LogInformation("Listing users...");
+        string res = await _deploymentService.RunCommandInContainer(_dockerClient, command.Where(x => x != null).Select(x => x!).ToList(), instanceId);
+        _logger.LogInformation(res);
+    }
+
 }

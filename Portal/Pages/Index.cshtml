@@ -20,6 +20,11 @@
         <div class="text-center mb-4">
             <h1 class="display-4">Welcome @Model.UserName</h1>
         </div>
+        @*  create button once clicked call function  *@
+
+
+
+
 
         <!-- Display Containers List -->
         @if (Model.Containers != null && Model.Containers.Any())
@@ -39,6 +44,7 @@
                                     <th scope="col">Created</th>
                                     <th scope="col">Deployment Name</th>
                                     <th scope="col">Pause</th>
+                                    <th scope="col">Get Users list</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -57,11 +63,18 @@
                                         <td>@container.Created.ToString("g")</td>
                                         <td>@container.Name</td>
                                         <td>
-                                            <form method="post" asp-page-handler="PauseInstance">
+                                            <form method="post" asp-page-handler="UsersList">
                                                 @Html.AntiForgeryToken() <!-- Anti-Forgery token added -->
                                                 <input type="hidden" name="InstanceId" value="@container.InstanceId" />
-                                                <button type="submit" class="btn btn-warning">Pause</button>
+                                                <button type="submit" class="btn btn-warning">pause</button>
+                                            </form></td>
+                                             <td> N
+                                            <form method="post" asp-page-handler="UsersList">
+                                                @Html.AntiForgeryToken() <!-- Anti-Forgery token added -->
+                                                <input type="hidden" name="InstanceId" value="@container.InstanceId" />
+                                                <button type="submit" class="btn btn-warning">Get list</button>
                                             </form>
+                                        </td>
 
 
                                     </tr>

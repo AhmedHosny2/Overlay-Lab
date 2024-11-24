@@ -84,11 +84,13 @@ namespace Portal.DeploymentService.Class
                 return await InitializeContainer(client, imageName, Uid, port);
 
             }
+            bool imageCreated = false;
             foreach (var container in containersList)
             {
                 // TODO: Implement more complex logic for container selection
                 if (container.Image.Equals(imageName, StringComparison.OrdinalIgnoreCase))
                 {
+                    imageCreated = true;
                     // get users list 
                     string usersList = await RunCommandInContainer(client, new List<string> { "cat", "/users.txt" }, container.ID);
                     Console.WriteLine($"Users list: {usersList}");
@@ -105,18 +107,18 @@ namespace Portal.DeploymentService.Class
                         // Add user to the list
                         string updatedUsersList = $"{usersList},{Uid}";
                         Console.WriteLine($"Updated users list: {updatedUsersList}");
-                        await RunCommandInContainer(client, new List<string> { $"echo {updatedUsersList} >> users.txt" }, container.ID);
+                       await RunCommandInContainer(client, new List<string> { $"echo \"{updatedUsersList}\" > users.txt" }, container.ID);
                         return container.ID;
                     }
 
                 }
-                else
-                {
-                    Console.WriteLine("In the user's list no containers found, create a new one");
-
-                    // Create new container
-                    return await InitializeContainer(client, imageName, Uid, port);
-                }
+                
+              
+            }
+            if(!imageCreated)
+            {
+                Console.WriteLine("No containers with image specs found, create a new one");
+                return await InitializeContainer(client, imageName, Uid, port);
             }
 
             return string.Empty;
@@ -158,7 +160,7 @@ namespace Portal.DeploymentService.Class
                 AttachStdout = true,
                 AttachStderr = true,
                 // create a file called users.txt and add the user id to it
-                Cmd = new List<string> { "sh", "-c", $"echo {Uid} > /users.txt && chmod 666 /users.txt && tail -f /dev/null" },
+                Cmd = new List<string> { "sh", "-c", $"echo \"{Uid}\" > /users.txt && chmod 666 /users.txt && tail -f /dev/null" },
                 ExposedPorts = new Dictionary<string, EmptyStruct>
 
                 {
