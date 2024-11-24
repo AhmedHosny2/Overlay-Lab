@@ -51,7 +51,7 @@ namespace MyApp.Namespace
         {
             if (value == null)
             {
-                return "N/A";
+                return string.Empty;
             }
 
             Type type = value.GetType();
@@ -69,7 +69,7 @@ namespace MyApp.Namespace
                 }
                 else
                 {
-                    return "N/A";
+                    return string.Empty;    
                 }
             }
             else if (typeof(IEnumerable<object>).IsAssignableFrom(type))
@@ -94,7 +94,7 @@ namespace MyApp.Namespace
                 }
                 else
                 {
-                    return "N/A";
+                    return string.Empty;
                 }
             }
             else if (type.IsClass)

@@ -24,6 +24,11 @@
             <tbody>
                 @foreach (PropertyInfo prop in typeof(Portal.Models.ServerInstance).GetProperties())
                 {
+                    @if(prop.GetValue (Model.Container) == null || prop.GetValue(Model.Container).ToString() == string.Empty )
+                    {
+                        
+                        continue;
+                    }
                     <tr>
                         <td style="padding: 8px; border-bottom: 1px solid #ddd; vertical-align: top;">@prop.Name</td>
                         <td style="padding: 8px; border-bottom: 1px solid #ddd;">
