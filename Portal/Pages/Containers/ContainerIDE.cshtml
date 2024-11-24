@@ -16,18 +16,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/theme/monokai.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/theme/material.min.css">
     <!-- CodeMirror Addon CSS -->
-    <link rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/hint/show-hint.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/hint/show-hint.min.css">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="~/css/ContainerIDEStyle.css">
-    <style>
-        /* Optional: Additional styling for the copy buttons */
-        .copy-button {
-            margin-left: 10px;
-            padding: 5px 10px;
-            cursor: pointer;
-        }
-    </style>
 </head>
 
 <body>
@@ -63,14 +54,14 @@
                 </select>
             </div>
             <div class="toolbar-item">
-                <span>
+                <span class="info-item">
                     IP: <span id="ip-address">@Model.IPAddress</span>
-                    <button class="copy-button" onclick="copyToClipboard('ip-address')">Copy IP</button>
+                    <button class="copy-button" data-copy-target="ip-address">Copy IP</button>
                 </span>
                 |
-                <span>
+                <span class="info-item">
                     Port: <span id="port-number">@Model.Port</span>
-                    <button class="copy-button" onclick="copyToClipboard('port-number')">Copy Port</button>
+                    <button class="copy-button" data-copy-target="port-number">Copy Port</button>
                 </span>
             </div>
             <div class="toolbar-item">
@@ -100,48 +91,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/hint/javascript-hint.min.js"></script>
     <!-- Custom JS -->
     <script src="~/js/ContainerIDEScript.js"></script>
-    <script>
-        // Initialize CodeMirror
-        var editor = CodeMirror.fromTextArea(document.getElementById('code-editor'), {
-            lineNumbers: true,
-            mode: 'javascript', // default mode
-            theme: 'default',
-            matchBrackets: true,
-            autoCloseBrackets: true,
-            styleActiveLine: true,
-            extraKeys: { "Ctrl-Space": "autocomplete" }
-        });
 
-        // Language Selector
-        document.getElementById('language-select').addEventListener('change', function () {
-            var mode = this.value;
-            editor.setOption('mode', mode);
-        });
-
-        // Theme Selector
-        document.getElementById('theme-select').addEventListener('change', function () {
-            var theme = this.value;
-            editor.setOption('theme', theme);
-        });
-
-        // Copy to Clipboard Function
-        function copyToClipboard(elementId) {
-            var text = document.getElementById(elementId).innerText;
-            navigator.clipboard.writeText(text).then(function () {
-                alert(elementId === 'ip-address' ? 'IP address copied!' : 'Port number copied!');
-            }, function (err) {
-                alert('Failed to copy text: ', err);
-            });
-        }
-
-        // Run Button Click Handler
-        document.getElementById('run-button').addEventListener('click', function () {
-            var code = editor.getValue();
-            // Implement your run logic here
-            console.log('Running code:', code);
-            alert('Run functionality is not implemented yet.');
-        });
-    </script>
 </body>
 
 </html>

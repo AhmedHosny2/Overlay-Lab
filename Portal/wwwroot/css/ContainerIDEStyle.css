@@ -1,63 +1,120 @@
+/* wwwroot/css/ContainerIDEStyle.css */
+
 body {
     font-family: Arial, sans-serif;
     margin: 0;
     background-color: #2d2d2d;
     color: #f8f8f2;
-  }
-  
-  h1 {
+}
+
+h1 {
     text-align: center;
     padding: 20px;
     margin: 0;
     background-color: #44475a;
-  }
-  
-  .editor-container {
+    color: #f8f8f2;
+}
+
+.editor-container {
     margin: 20px;
     border: 1px solid #ccc;
     border-radius: 5px;
     overflow: hidden;
-  }
-  
-  .toolbar {
+    background-color: #282a36;
+}
+
+.toolbar {
     display: flex;
+    flex-wrap: wrap;
     justify-content: space-between;
     align-items: center;
     padding: 10px;
     background-color: #44475a;
-  }
-  
-  .toolbar-item {
+}
+
+.toolbar-item {
     display: flex;
     align-items: center;
-  }
-  
-  .toolbar label {
+    margin: 5px 0;
+}
+
+.toolbar label {
     margin-right: 10px;
-  }
-  
-  .toolbar select, .toolbar button {
+    color: #f8f8f2;
+}
+
+.toolbar select,
+.toolbar button {
     padding: 5px 10px;
     font-size: 16px;
     border: none;
     border-radius: 3px;
-  }
-  
-  .toolbar #ip-port {
-    font-weight: bold;
-  }
-  
-  .CodeMirror {
-    height: calc(100vh - 200px);
-  }
-  
-  #run-button {
+    margin-right: 10px;
+}
+
+.toolbar select {
+    background-color: #6272a4;
+    color: #f8f8f2;
+}
+
+.toolbar select:focus {
+    outline: none;
+    box-shadow: 0 0 5px #bd93f9;
+}
+
+.toolbar button {
     background-color: #50fa7b;
     color: #282a36;
     cursor: pointer;
     transition: background-color 0.3s;
-  }
-  
-  #run-button:hover {
+}
+
+.toolbar button:hover {
     background-color: #40c971;
-  }
+}
+
+.info-item {
+    display: flex;
+    align-items: center;
+    margin-right: 15px;
+    color: #f8f8f2;
+}
+
+.copy-button {
+    margin-left: 10px;
+    padding: 5px 10px;
+    font-size: 14px;
+    background-color: #ff79c6;
+    color: #282a36;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.copy-button:hover {
+    background-color: #ff6fb1;
+}
+
+.CodeMirror {
+    height: calc(100vh - 200px);
+    background-color: #282a36;
+    color: #f8f8f2;
+}
+
+@media (max-width: 768px) {
+    .toolbar {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .toolbar-item {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .info-item {
+        margin-right: 0;
+        margin-bottom: 10px;
+    }
+}
