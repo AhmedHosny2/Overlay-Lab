@@ -19,14 +19,15 @@ namespace MyApp.Namespace
         private DockerClient _dockerClient;
         public string ContainerId { get; set; }
         public ServerInstance Container { get; set; }
-
+        private string _uid = string.Empty;
 
         public GetContainerDetailsModel(IDeploymentService deploymentService, IConfiguration configuration, ILogger<GetContainerDetailsModel> logger)
         {
             _deploymentService = deploymentService;
             _configuration = configuration;
             _logger = logger;
-            _dockerClient = _deploymentService.ConnectToDocker();
+            _dockerClient = _deploymentService.CreateDockerClient();
+            _uid = User.FindFirst("uid")?.Value ?? string.Empty;
             // ContainerId =
 
             // Load the containers data
@@ -40,7 +41,7 @@ namespace MyApp.Namespace
             ContainerId = id;
             // log id 
             _logger.LogInformation("ContainerId: {0}", ContainerId);
-            Container = _deploymentService.GetContainerDetails(_dockerClient, ContainerId).Result;
+            Container = _deploymentService.FetchContainerDetails(_dockerClient, ContainerId, _uid).Result;
 
 
         }

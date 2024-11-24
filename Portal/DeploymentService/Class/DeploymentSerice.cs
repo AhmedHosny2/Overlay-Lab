@@ -72,35 +72,48 @@ namespace Portal.DeploymentService.Class
         // each time user tries to connect/deploy to the container, this method will be called
         public async Task<string> GetOrCreateContainerForUser(DockerClient client, string imageName, string Uid, string port)
         {
-            IList<ServerInstance> containersList = await ListContainers(client, Uid);
-            Console.WriteLine("$imageName: {imageName}, Uid: {Uid}, port: {port}");
+            IList<ContainerListResponse> containersList = await client.Containers.ListContainersAsync(new ContainersListParameters
+            {
+            });
+
+
+            // print image uid and port
+            if (containersList.Count == 0)
+            {
+                Console.WriteLine("No containers found, create a new one");
+                return await InitializeContainer(client, imageName, Uid, port);
+
+            }
             foreach (var container in containersList)
             {
-                Console.WriteLine($"Container: {container.InstanceId}, Image: {container.ServerType}, Users: {container.ConfigLabels["users"]}");
                 // TODO: Implement more complex logic for container selection
-                if (container.ServerType.Equals(imageName, StringComparison.OrdinalIgnoreCase))
+                if (container.Image.Equals(imageName, StringComparison.OrdinalIgnoreCase))
                 {
-                    if (container.ConfigLabels.ContainsKey("users"))
+                    // get users list 
+                    string usersList = await RunCommandInContainer(client, new List<string> { "cat", "/users.txt" }, container.ID);
+                    Console.WriteLine($"Users list: {usersList}");
+                    // Check if the user is already in the list
+                    var users = usersList.Split(',');
+                    if (users.Contains(Uid))
                     {
-                        // Check if the user is already in the list
-                        var users = container.ConfigLabels["users"].Split(',');
-                        if (users.Contains(Uid))
-                        {
-                            Console.WriteLine("User already in the list");
-                            return container.InstanceId;
-                        }
-                        else
-                        {
-                            Console.WriteLine("User not in the list");
-                            // Add user to the list
-                            container.ConfigLabels["users"] += $",{Uid}";
-                            return container.InstanceId;
-                        }
+                        Console.WriteLine("User already in the list");
+                        return container.ID;
                     }
+                    else
+                    {
+                        Console.WriteLine("User not in the list, add user to the list of container id " + container.ID);
+                        // Add user to the list
+                        string updatedUsersList = $"{usersList},{Uid}";
+                        Console.WriteLine($"Updated users list: {updatedUsersList}");
+                        await RunCommandInContainer(client, new List<string> { $"echo {updatedUsersList} >> users.txt" }, container.ID);
+                        return container.ID;
+                    }
+
                 }
                 else
                 {
-                    Console.WriteLine("Image not found");
+                    Console.WriteLine("In the user's list no containers found, create a new one");
+
                     // Create new container
                     return await InitializeContainer(client, imageName, Uid, port);
                 }
@@ -120,18 +133,19 @@ namespace Portal.DeploymentService.Class
             // Define port bindings to map host port to container port
             var hostConfig = new HostConfig
             {
+
                 PortBindings = new Dictionary<string, IList<PortBinding>>
+        {
+            {
+                $"{port}/tcp", new List<PortBinding>
                 {
+                    new PortBinding
                     {
-                        $"{port}/tcp", new List<PortBinding>
-                        {
-                            new PortBinding
-                            {
-                                HostPort = port // Host port (no "/tcp" needed)
-                            }
-                        }
+                        HostPort = port // Host port (no "/tcp" needed)
                     }
                 }
+            }
+        }
             };
 
             // Configure container settings
@@ -143,29 +157,22 @@ namespace Portal.DeploymentService.Class
                 AttachStdin = true,
                 AttachStdout = true,
                 AttachStderr = true,
-                Labels = new Dictionary<string, string>
-                {
-                    { "users", Uid }
-                },
+                // create a file called users.txt and add the user id to it
+                Cmd = new List<string> { "sh", "-c", $"echo {Uid} > /users.txt && chmod 666 /users.txt && tail -f /dev/null" },
                 ExposedPorts = new Dictionary<string, EmptyStruct>
+
                 {
-                    { $"{port}/tcp", new EmptyStruct() }
-                },
-                // Set the command to run.
-                // If you want to use the image's default CMD, you can omit this.
-                // Here, it's set to keep the container running indefinitely.
-                // Cmd = new List<string> { "/bin/sh", "-c", "sleep infinity" }
+            { $"{port}/tcp", new EmptyStruct() }
+            }
             };
 
-            // Add additional labels, such as a creation timestamp
-            string timestamp = DateTime.UtcNow.ToString("o"); // ISO 8601 format
+
+
+
             var createContainerParameters = new CreateContainerParameters(config)
             {
                 HostConfig = hostConfig,
-                Labels = new Dictionary<string, string>
-                {
-                    { "created_at", timestamp }
-                }
+
             };
 
             Console.WriteLine("Creating container...");
@@ -195,34 +202,30 @@ namespace Portal.DeploymentService.Class
                 return string.Empty;
             }
         }
-
         // List containers
 
         public async Task<IList<ServerInstance>> ListContainers(DockerClient client, string Uid)
         {
             IList<ServerInstance> containersList = new List<ServerInstance>();
             Console.WriteLine("Listing containers...");
+            // print uid 
+            Console.WriteLine($"UID: {Uid}");
             try
             {
                 IList<ContainerListResponse> containers = await client.Containers.ListContainersAsync(new ContainersListParameters
                 {
-                    // only show container with label list users that contain the user id
-                    Filters = new Dictionary<string, IDictionary<string, bool>>
-                    {
-                        {
-                            "label", new Dictionary<string, bool>
-                            {
-                                { "users", true }
-                            }
-                        }
-                    }
                 });
 
                 foreach (var container in containers)
                 {
+                    // check if the user in the list of the container
+                    string usersList = await RunCommandInContainer(client, new List<string> { "cat", "/users.txt" }, container.ID);
+                    if (usersList == null || !usersList.Contains(Uid))
+                    {
+                        continue;
+                    }
                     var firstNetwork = container.NetworkSettings.Networks.Values.FirstOrDefault();
-                    Console.WriteLine($"Container: {container.ID}, Image: {container.Image}, Users: {container.Labels["users"]}");
-                    if (firstNetwork != null && container.Labels["users"].Contains(Uid))
+                    if (firstNetwork != null)
                     {
                         // Get the private IP address from the first network
                         var privateIP = firstNetwork.IPAddress;
@@ -266,9 +269,10 @@ namespace Portal.DeploymentService.Class
             try
             {
                 var containerDetails = await client.Containers.InspectContainerAsync(containerId);
-                if (containerDetails.Config.Labels["users"].Contains(Uid))
+                string usersList = await RunCommandInContainer(client, new List<string> { "cat", "/users.txt" }, containerDetails.ID);
+                if (usersList != null && usersList.Contains(Uid))
                 {
-                    Console.WriteLine($"Container: {containerDetails.ID}, Image: {containerDetails.Image}, Users: {containerDetails.Config.Labels["users"]}");
+                    Console.WriteLine($"Container: {containerDetails.ID}, Image: {containerDetails.Image}, Users: {usersList}");
                 }
                 else
                 {
@@ -306,7 +310,7 @@ namespace Portal.DeploymentService.Class
 
         // Execute commands in the container
         // TODO: Not all commands will work with this method
-        public async Task<StringBuilder> RunCommandInContainer(DockerClient client, List<string> command, string containerId)
+        public async Task<string> RunCommandInContainer(DockerClient client, List<string> command, string containerId)
         {
             Console.WriteLine($"Client: {client}, Container ID: {containerId}, Command: {string.Join(" ", command)}");
             try
@@ -321,6 +325,7 @@ namespace Portal.DeploymentService.Class
                     AttachStdout = true,
                     AttachStderr = true,
                     Tty = false,
+                    WorkingDir = "/",
                     Cmd = new List<string> { "sh", "-c", shellCommand } // Use 'sh -c' to execute the shell command
                 });
 
@@ -345,13 +350,13 @@ namespace Portal.DeploymentService.Class
                     Console.WriteLine("Command output:");
                     Console.WriteLine(outputBuilder);
 
-                    return outputBuilder;
+                    return outputBuilder.ToString();
                 }
             }
             catch (Exception e)
             {
                 Console.WriteLine($"Error: {e.Message}");
-                return new StringBuilder(e.Message);
+                return e.Message;
             }
         }
 

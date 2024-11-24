@@ -18,6 +18,7 @@ public class IndexModel : PageModel
     private DockerClient _dockerClient;
     private readonly ILogger<IndexModel> _logger;
     public string UserName { get; set; } = string.Empty;
+    private string _uid = string.Empty;
 
     [BindProperty]
     [Required(ErrorMessage = "Instance ID is required.")]
@@ -28,7 +29,7 @@ public class IndexModel : PageModel
     public IndexModel(IDeploymentService deploymentService, ILogger<IndexModel> logger)
     {
         _deploymentService = deploymentService;
-        _dockerClient = _deploymentService.ConnectToDocker();
+        _dockerClient = _deploymentService.CreateDockerClient();
         _logger = logger;
 
 
@@ -38,7 +39,8 @@ public class IndexModel : PageModel
     // list containers
     public async Task OnGetAsync()
     {
-        Containers = await _deploymentService.ListContainers(_dockerClient);
+        _uid = User.FindFirst("uid")?.Value ?? string.Empty;
+        Containers = await _deploymentService.ListContainers(_dockerClient, _uid);
         UserName = User.FindFirst("name")?.Value.Split(",")[0] ?? string.Empty;
 
         // Log the claims for debugging

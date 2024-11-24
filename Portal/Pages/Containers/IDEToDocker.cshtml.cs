@@ -40,7 +40,7 @@ public class IDEToDockerModel : PageModel
                 return new JsonResult(new { success = false, output = "Container ID not found in session" });
             }
             // Execute the command and capture the output
-            StringBuilder execOutput = await _deploymentService.ExecuteCommand(_deploymentService.ConnectToDocker(), command, containerId);
+            string execOutput = await _deploymentService.RunCommandInContainer(_deploymentService.CreateDockerClient(), command, containerId);
 
             // Return the command output as a JSON result for AJAX handling
             return new JsonResult(new { success = true, output = execOutput.ToString() });

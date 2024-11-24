@@ -31,12 +31,13 @@ namespace MyApp.Namespace
 
         public Dictionary<string, ImageConfig> Images { get; set; }
         public IEnumerable<string> ImageNames { get; set; }
+        private string _uid = string.Empty;
         public DeployContainerModel(IDeploymentService deploymentService, IConfiguration configuration, ILogger<DeployContainerModel> logger)
         {
             _deploymentService = deploymentService;
             _configuration = configuration;
             _logger = logger;
-            _dockerClient = _deploymentService.ConnectToDocker();
+            _dockerClient = _deploymentService.CreateDockerClient();
 
             // Load the image names list from the config file
             Images = _configuration.GetSection("DockerImages").Get<Dictionary<string, ImageConfig>>() ?? new Dictionary<string, ImageConfig>();
@@ -46,13 +47,11 @@ namespace MyApp.Namespace
 
         public void OnGet()
         {
-            // No specific logic for GET at the moment
         }
 
         // DeployInstance is the function name triggered with the deploy button in the UI
         public async Task<IActionResult> OnPostDeployInstance()
         {
-            _logger.LogDebug("hellllllo");
             // Check if the model is valid
             if (!ModelState.IsValid)
             {
@@ -79,6 +78,8 @@ namespace MyApp.Namespace
         // Main function to run the docker commands
         private async Task DeployContainerAsync()
         {
+            _uid = User.FindFirst("uid")?.Value ?? string.Empty;
+
             _logger.LogInformation("Deploying container with image: {ImageName}", ImageName);
             // Validate ImageName input
             if (string.IsNullOrEmpty(ImageName) || !Images.ContainsKey(ImageName))
@@ -91,11 +92,12 @@ namespace MyApp.Namespace
             string? port = Images[ImageName].Port;
 
             _logger.LogInformation("Deploying container with image: {Image}", mappedImage);
-            _logger.LogInformation("Deploying container with port: {Image}", port);
+            _logger.LogInformation("Deploying container with port: {port}", port);
+            _logger.LogInformation("Deploying container with uid: {uid}", _uid);
 
 
             // Create the container
-            string createdContainerId = await _deploymentService.CreateContainer(_dockerClient, ImageName,  User.FindFirst("uid")?.Value ,port ?? "");
+            string createdContainerId = await _deploymentService.GetOrCreateContainerForUser(_dockerClient, ImageName, _uid, port ?? "");
 
             // Store the created container id in the session
             try
