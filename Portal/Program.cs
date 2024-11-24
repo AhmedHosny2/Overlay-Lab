@@ -25,11 +25,11 @@ var app = builder.Build();
 
 // Add CSP middleware to disallow inline JavaScript
 //TODO fix all console errors for this one 
-app.Use(async (context, next) =>
-{
-    context.Response.Headers.Append("Content-Security-Policy", "default-src 'self'; script-src 'self' https://stackpath.bootstrapcdn.com https://code.jquery.com https://cdn.jsdelivr.net;");
-    await next();
-});
+// app.Use(async (context, next) =>
+// {
+//     context.Response.Headers.Append("Content-Security-Policy", "default-src 'self'; script-src 'self' https://stackpath.bootstrapcdn.com https://code.jquery.com https://cdn.jsdelivr.net;");
+//     await next();
+// });
 
 
 // enable session
