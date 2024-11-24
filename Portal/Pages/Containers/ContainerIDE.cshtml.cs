@@ -8,15 +8,16 @@ namespace MyApp.Namespace
     {
         public string IPAddress { get; set; }
         public string Port { get; set; }
+        public string InstanceId { get; set; }
 
         public void OnGet()
         {
-            // Retrieve IP Address from HTTP Context
-            IPAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
 
-            // Retrieve Port from HTTP Context or set a default value
-            // For demonstration, we'll set it to a default value
-            Port = HttpContext.Connection.RemotePort.ToString();
+            IPAddress = HttpContext.Session.GetString("IpAddress");
+            Port = HttpContext.Session.GetString("Port");
+            InstanceId = HttpContext.Session.GetString("InstanceId");
+
+
         }
     }
 }

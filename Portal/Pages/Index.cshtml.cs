@@ -67,18 +67,19 @@ public class IndexModel : PageModel
             return RedirectToPage();
         }
     }
-    public async Task OnPostUsersList(string instanceId)
+    public async Task OnPostContainerIDE(string IpAddress, string instanceId, string Port)
     {
-        string initCommand = "cat users.txt";
-        // Split the string into an array of words (assuming space-separated commands)
-        var command = initCommand.Split(' ')  // Converts the string into a collection of strings
-                                 .Where(x => x != null) // Filters out null strings (if any)
-                                 .Select(x => x!)      // Ensures non-null values for compiler safety
-                                 .ToList();
+        _logger.LogInformation($"Opening container IDE for container: {instanceId}");
+        _logger.LogInformation($"IP Address: {IpAddress}");
+        _logger.LogInformation($"Port: {Port}");
+        // add to http context
+        HttpContext.Session.SetString("IpAddress", IpAddress);
+        HttpContext.Session.SetString("Port", Port);
+        HttpContext.Session.SetString("InstanceId", instanceId);
+        // redirect to container ide page
+        Response.Redirect("/Containers/ContainerIDE");
 
-        _logger.LogInformation("Listing users...");
-        string res = await _deploymentService.RunCommandInContainer(_dockerClient, command.Where(x => x != null).Select(x => x!).ToList(), instanceId);
-        _logger.LogInformation(res);
     }
+
 
 }

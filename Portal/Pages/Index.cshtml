@@ -63,16 +63,19 @@
                                         <td>@container.Created.ToString("g")</td>
                                         <td>@container.Name</td>
                                         <td>
-                                            <form method="post" asp-page-handler="UsersList">
+                                            <form method="post" asp-page-handler="PauseInstance">
                                                 @Html.AntiForgeryToken() <!-- Anti-Forgery token added -->
                                                 <input type="hidden" name="InstanceId" value="@container.InstanceId" />
                                                 <button type="submit" class="btn btn-warning">pause</button>
-                                            </form></td>
-                                             <td> N
-                                            <form method="post" asp-page-handler="UsersList">
+                                            </form>
+                                        </td>
+                                        <td> N
+                                            <form method="post" asp-page-handler="ContainerIDE">
                                                 @Html.AntiForgeryToken() <!-- Anti-Forgery token added -->
+                                                <input type="hidden" name="IpAddress" value="@container.IpAddress" />
                                                 <input type="hidden" name="InstanceId" value="@container.InstanceId" />
-                                                <button type="submit" class="btn btn-warning">Get list</button>
+                                                <input type="hidden" name="Port" value="@container.Port" />
+                                                <button type="submit" class="btn btn-warning">Interact width your code!</button>
                                             </form>
                                         </td>
 
