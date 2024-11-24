@@ -125,9 +125,9 @@ namespace Portal.Models
                 this.InstanceId = containerInspectResponse.ID ?? string.Empty;
                 this.Name = containerInspectResponse.Name ?? string.Empty;
                 this.Image = containerInspectResponse.Image ?? string.Empty;
-                
-                    this.Created = containerInspectResponse.Created;
-                
+
+                this.Created = containerInspectResponse.Created;
+
 
                 // Path and Args
                 this.Path = containerInspectResponse.Path ?? string.Empty;
@@ -255,12 +255,12 @@ namespace Portal.Models
                 if (firstNetwork != null)
                 {
                     this.IpAddress = firstNetwork.IPAddress ?? string.Empty;
-                 // get port from config 
-                 if(config.ExposedPorts.Count > 0)
-                 {
-                     var port = config.ExposedPorts.Keys.First();
-                     this.Port = port;
-                 }
+                    // get port from config 
+                    if (config.ExposedPorts.Count > 0)
+                    {
+                        var port = config.ExposedPorts.Keys.First();
+                        this.Port = port;
+                    }
                 }
             }
         }

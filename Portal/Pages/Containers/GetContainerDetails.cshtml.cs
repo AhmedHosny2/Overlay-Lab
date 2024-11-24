@@ -27,7 +27,6 @@ namespace MyApp.Namespace
             _configuration = configuration;
             _logger = logger;
             _dockerClient = _deploymentService.CreateDockerClient();
-            _uid = User.FindFirst("uid")?.Value ?? string.Empty;
             // ContainerId =
 
             // Load the containers data
@@ -38,6 +37,8 @@ namespace MyApp.Namespace
 
         public void OnGet(string id)
         {
+            _uid = User.FindFirst("uid")?.Value ?? string.Empty;
+
             ContainerId = id;
             // log id 
             _logger.LogInformation("ContainerId: {0}", ContainerId);
