@@ -159,8 +159,7 @@ namespace Portal.DeploymentService.Class
                 AttachStdin = true,
                 AttachStdout = true,
                 AttachStderr = true,
-                // create a file called users.txt and add the user id to it
-                Cmd = new List<string> { "sh", "-c", $"echo \"{Uid}\" > /users.txt && chmod 666 /users.txt && tail -f /dev/null" },
+
                 ExposedPorts = new Dictionary<string, EmptyStruct>
 
                 {
@@ -189,6 +188,9 @@ namespace Portal.DeploymentService.Class
                 if (started)
                 {
                     Console.WriteLine("Container started successfully.");
+                    // add uid to the list of users
+                    await RunCommandInContainer(client, new List<string> { $"echo \"{Uid}\" >> users.txt" }, createdContainer.ID);
+                    Console.WriteLine("User added to the list of users");
                 }
                 else
                 {
