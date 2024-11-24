@@ -107,15 +107,15 @@ namespace Portal.DeploymentService.Class
                         // Add user to the list
                         string updatedUsersList = $"{usersList},{Uid}";
                         Console.WriteLine($"Updated users list: {updatedUsersList}");
-                       await RunCommandInContainer(client, new List<string> { $"echo \"{updatedUsersList}\" > users.txt" }, container.ID);
+                        await RunCommandInContainer(client, new List<string> { $"echo \"{updatedUsersList}\" > users.txt" }, container.ID);
                         return container.ID;
                     }
 
                 }
-                
-              
+
+
             }
-            if(!imageCreated)
+            if (!imageCreated)
             {
                 Console.WriteLine("No containers with image specs found, create a new one");
                 return await InitializeContainer(client, imageName, Uid, port);
