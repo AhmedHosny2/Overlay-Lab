@@ -69,13 +69,13 @@
                                                 <button type="submit" class="btn btn-warning">pause</button>
                                             </form>
                                         </td>
-                                        <td> N
+                                        <td> 
                                             <form method="post" asp-page-handler="ContainerIDE">
                                                 @Html.AntiForgeryToken() <!-- Anti-Forgery token added -->
                                                 <input type="hidden" name="IpAddress" value="@container.IpAddress" />
                                                 <input type="hidden" name="InstanceId" value="@container.InstanceId" />
                                                 <input type="hidden" name="Port" value="@container.Port" />
-                                                <button type="submit" class="btn btn-warning">Interact width your code!</button>
+                                                <button type="submit" class="btn btn-success">Interact width your code!</button>
                                             </form>
                                         </td>
 
