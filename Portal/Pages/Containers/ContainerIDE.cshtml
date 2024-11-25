@@ -1,20 +1,24 @@
 ﻿@page
 @model MyApp.Namespace.ContainerIDEModel
+@using Microsoft.AspNetCore.Antiforgery
+@inject IAntiforgery Antiforgery
 @{
     Layout = null; // Or specify your layout page if you have one
+    // Generate and store the anti-forgery tokens
+    var tokens = Antiforgery.GetAndStoreTokens(HttpContext);
 }
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
     <meta charset="UTF-8">
-    <title>CodeMirror Multi-Language Editor</title>
+    <title>Multi-Language IDE</title>
+    <!-- Include the Anti-Forgery Token as a Meta Tag -->
+    <meta name="csrf-token" content="@tokens.RequestToken" />
     <!-- CodeMirror CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css">
     <!-- CodeMirror Themes -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/theme/dracula.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/theme/monokai.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/theme/material.min.css">
     <!-- CodeMirror Addon CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/hint/show-hint.min.css">
     <!-- Custom CSS -->
@@ -23,34 +27,24 @@
 
 <body>
 
-    <h1>CodeMirror Multi-Language Editor</h1>
+    <h1>Multi-Language IDE</h1>
 
     <div class="editor-container">
         <div class="toolbar">
             <div class="toolbar-item">
-                <label for="language-select">Language:</label>
+                <label for="language-select"><strong>Language:</strong></label>
                 <select id="language-select">
                     <option value="javascript">JavaScript</option>
                     <option value="python">Python</option>
-                    <option value="go">Go</option>
-                    <option value="text/x-java">Java</option>
-                    <option value="text/x-c++src">C++</option>
-                    <option value="ruby">Ruby</option>
-                    <option value="application/x-httpd-php">PHP</option>
-                    <option value="text/x-csharp">C#</option>
-                    <option value="htmlmixed">HTML</option>
-                    <option value="css">CSS</option>
-                    <!-- Add more languages as needed -->
                 </select>
             </div>
             <div class="toolbar-item">
-                <label for="theme-select">Theme:</label>
+                <label for="theme-select"><strong>Theme:</strong></label>
                 <select id="theme-select">
                     <option value="default">Default</option>
                     <option value="dracula">Dracula</option>
                     <option value="monokai">Monokai</option>
                     <option value="material">Material</option>
-                    <!-- Add more themes as needed -->
                 </select>
             </div>
             <div class="toolbar-item">
@@ -71,24 +65,28 @@
         <textarea id="code-editor">// Write your code here...</textarea>
     </div>
 
+    <div id="output-section">
+        <h2>Output:</h2>
+        <pre id="output"></pre>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay">
+        Loading Python runtime...
+    </div>
+
     <!-- CodeMirror JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.js"></script>
     <!-- CodeMirror Modes -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/javascript/javascript.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/python/python.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/go/go.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/clike/clike.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/ruby/ruby.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/php/php.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/htmlmixed/htmlmixed.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/css/css.min.js"></script>
     <!-- CodeMirror Addons -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/edit/closebrackets.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/edit/matchbrackets.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/display/active-line.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/hint/show-hint.min.js"></script>
-    <!-- Language-specific Hints -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/hint/javascript-hint.min.js"></script>
+    <!-- Pyodide for Python Support -->
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
     <!-- Custom JS -->
     <script src="~/js/ContainerIDEScript.js"></script>
 
