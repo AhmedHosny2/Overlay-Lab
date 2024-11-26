@@ -98,7 +98,7 @@ copyButtons.forEach((button) => {
   });
 });
 
-// Initialize Pyodide
+// Initialize Pyodide to run Python code
 let pyodide = null;
 const loadingOverlay = document.getElementById("loading-overlay");
 
