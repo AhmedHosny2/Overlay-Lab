@@ -67,11 +67,11 @@ languageSelect.addEventListener("change", function () {
 });
 
 // Handle Theme Change
-const themeSelect = document.getElementById("theme-select");
-themeSelect.addEventListener("change", function () {
-  const theme = this.value;
-  editor.setOption("theme", theme);
-});
+// const themeSelect = document.getElementById("theme-select");
+// themeSelect.addEventListener("change", function () {
+//   const theme = this.value;
+//   editor.setOption("theme", theme);
+// });
 
 // Initialize with default content
 editor.setValue(defaultContent[languageSelect.value] || "// Start coding...");
