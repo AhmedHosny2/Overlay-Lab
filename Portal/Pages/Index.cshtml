@@ -13,98 +13,55 @@
     <title>@ViewData["Title"] - Portal</title>
     <link rel="stylesheet" href="~/css/site.css" />
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="~/css/homePage.css" rel="stylesheet" />
 </head>
 
 <body>
     <div class="container mt-5">
         <div class="text-center mb-4">
             <h1 class="display-4">Welcome @Model.UserName</h1>
-        </div>
-        @*  create button once clicked call function  *@
+       @* display ex details   *@
 
+            <div class="exercise-list-container">
+                <h1 class="exercise-list-title">Exercise List</h1>
+                <table class="exercise-table">
 
-
-
-
-        <!-- Display Containers List -->
-        @if (Model.Containers != null && Model.Containers.Any())
-        {
-            <div class="row">
-                <div class="col-12">
-                    <h2 class="mb-3">Server Instances</h2>
-                    <div class="table-responsive">
-                        <table class="table table-striped table-bordered">
-                            <thead class="thead-dark">
-                                <tr>
-                                    <th scope="col">Instance ID</th>
-                                    <th scope="col">Server Type</th>
-                                    <th scope="col">Status</th>
-                                    <th scope="col">IP Address</th>
-                                    <th scope="col">Port</th>
-                                    <th scope="col">Created</th>
-                                    <th scope="col">Deployment Name</th>
-                                    <th scope="col">Visit</th>
-                                    <th scope="col">Get Users list</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach (var container in Model.Containers)
-                                {
-                                    <tr>
-                                        <td><a href="/Containers/GetContainerDetails/@container.InstanceId">
-                                                @container.InstanceId</a>
-
-                                        </td>
-                                        <td>@container.ServerType</td>
-                                        <td class="status @container.Status">@container.Status</td>
-
-                                        <td>@container.IpAddress</td>
-                                        <td>@container.Port</td>
-                                        <td>@container.Created.ToString("g")</td>
-                                        <td>@container.Name</td>
-                                        <td>
-                                            @* href to local host/ port number  *@
-                                            <a  href="http://localhost:@container.Port" class="btn btn-primary" target="_blank">Visit</a>
-                                        </td>
-                                        <td> 
-                                            <form method="post" asp-page-handler="ContainerIDE">
-                                                @Html.AntiForgeryToken() <!-- Anti-Forgery token added -->
-                                                <input type="hidden" name="IpAddress" value="@container.IpAddress" />
-                                                <input type="hidden" name="InstanceId" value="@container.InstanceId" />
-                                                <input type="hidden" name="Port" value="@container.Port" />
-                                                <button type="submit" class="btn btn-success">open IDE!</button>
-                                            </form>
-                                        </td>
-
-
-                                    </tr>
-                                }
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Description</th>
+                            <th>Difficulty</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var exercise in Model.Exercises)
+                        {
+                            <tr>
+                                <td>@exercise.ExerciseTile</td>
+                                <td>@exercise.ExerciseDescription</td>
+                                <td>@exercise.ExerciseDifficulty</td>
+                                <td class="exercise-actions">
+                                    <form method="post" asp-page-handler="DeployInstance">
+                                        <input type="hidden" name="ExerciseName" value="@exercise.ExerciseName" />
+                                        <button class="btn-start" type="submit">Start</button>
+                                    </form>
+                                    <button class="btn-stop" type="submit">Stop</button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
             </div>
-        }
-        else
-        {
-            <div class="row">
-                <div class="col-12">
-                    <div class="alert alert-info text-center" role="alert">
-                        No server instances available.
-                    </div>
-                </div>
-            </div>
-        }
-    </div>
 
-    <!-- JavaScript Dependencies: move any inline JavaScript to a separate file -->
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
-        integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj"
-        crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"
-        integrity="sha384-pzjw8f+ua7Kw1TIqE7anJf6b3zH5pbeVxknzYlbR5STIbYQb6P6afkFeJQuo5eNm"
-        crossorigin="anonymous"></script>
-    <script src="~/js/site.js"></script> <!-- Custom JavaScript file -->
+            <!-- JavaScript Dependencies: move any inline JavaScript to a separate file -->
+            <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
+                integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj"
+                crossorigin="anonymous"></script>
+            <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"
+                integrity="sha384-pzjw8f+ua7Kw1TIqE7anJf6b3zH5pbeVxknzYlbR5STIbYQb6P6afkFeJQuo5eNm"
+                crossorigin="anonymous"></script>
+            <script src="~/js/site.js"></script> <!-- Custom JavaScript file -->
 
 </body>
 @*  add inline js do alert  *@
