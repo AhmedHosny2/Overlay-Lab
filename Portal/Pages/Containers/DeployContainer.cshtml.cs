@@ -50,68 +50,69 @@ namespace MyApp.Namespace
         }
 
         // DeployInstance is the function name triggered with the deploy button in the UI
-        public async Task<IActionResult> OnPostDeployInstance()
-        {
-            // Check if the model is valid
-            if (!ModelState.IsValid)
-            {
-                // If validation fails, re-render the page with the validation messages
-                return Page();
-            }
+        // public async Task<IActionResult> OnPostDeployInstance()
+        // {
+        //     // Check if the model is valid
+        //     if (!ModelState.IsValid)
+        //     {
+        //         // If validation fails, re-render the page with the validation messages
+        //         return Page();
+        //     }
 
-            _logger.LogInformation("Initiating container deployment...");
+        //     _logger.LogInformation("Initiating container deployment...");
 
-            try
-            {
-                await DeployContainerAsync();
-                return RedirectToPage("/Index"); // Use RedirectToPage for consistency
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error occurred during container deployment.");
-                // Add error to ModelState to display on the page
-                ModelState.AddModelError(string.Empty, "An error occurred while deploying the container. Please try again.");
-                return Page();
-            }
-        }
+        //     try
+        //     {
+        //         await DeployContainerAsync();
+        //         return RedirectToPage("/Index"); // Use RedirectToPage for consistency
+        //     }
+        //     catch (Exception ex)
+        //     {
+        //         _logger.LogError(ex, "Error occurred during container deployment.");
+        //         // Add error to ModelState to display on the page
+        //         ModelState.AddModelError(string.Empty, "An error occurred while deploying the container. Please try again.");
+        //         return Page();
+        //     }
+        // }
 
         // Main function to run the docker commands
-        private async Task DeployContainerAsync()
-        {
-            _uid = User.FindFirst("uid")?.Value ?? string.Empty;
+    //     private async Task DeployContainerAsync()
+    //     {
+    //         _uid = User.FindFirst("uid")?.Value ?? string.Empty;
 
-            _logger.LogInformation("Deploying container with image: {ImageName}", ImageName);
-            // Validate ImageName input
-            if (string.IsNullOrEmpty(ImageName) || !Images.ContainsKey(ImageName))
-            {
-                throw new ArgumentException("Invalid image name provided.");
-            }
+    //         _logger.LogInformation("Deploying container with image: {ImageName}", ImageName);
+    //         // Validate ImageName input
+    //         if (string.IsNullOrEmpty(ImageName) || !Images.ContainsKey(ImageName))
+    //         {
+    //             throw new ArgumentException("Invalid image name provided.");
+    //         }
 
-            // Map the image key to the value of the image key 
-            string mappedImage = Images[ImageName].Name;
-            string? port = Images[ImageName].Port;
+    //         // Map the image key to the value of the image key 
+    //         string mappedImage = Images[ImageName].Name;
+    //         string? port = Images[ImageName].Port;
 
-            _logger.LogInformation("Deploying container with image: {Image}", mappedImage);
-            _logger.LogInformation("Deploying container with port: {port}", port);
-            _logger.LogInformation("Deploying container with uid: {uid}", _uid);
+    //         _logger.LogInformation("Deploying container with image: {Image}", mappedImage);
+    //         _logger.LogInformation("Deploying container with port: {port}", port);
+    //         _logger.LogInformation("Deploying container with uid: {uid}", _uid);
 
 
-            // Create the container
-            string createdContainerId = await _deploymentService.GetOrCreateContainerForUser(_dockerClient, ImageName, _uid, port ?? "");
+    //         // Create the container
+    //         string createdContainerId = await _deploymentService.GetOrCreateContainerForUser(_dockerClient, ImageName, _uid, port ?? "");
 
-            // Store the created container id in the session
-            try
-            {
-                HttpContext.Session.SetString("CreatedContainerId", createdContainerId);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error storing container ID in session.");
-                throw new Exception("Unable to store container ID in session.");
-            }
+    //         // Store the created container id in the session
+    //         try
+    //         {
+    //             HttpContext.Session.SetString("CreatedContainerId", createdContainerId);
+    //         }
+    //         catch (Exception ex)
+    //         {
+    //             _logger.LogError(ex, "Error storing container ID in session.");
+    //             throw new Exception("Unable to store container ID in session.");
+    //         }
 
-            // Start the container
-            // await _deploymentService.RunContainer(_dockerClient, createdContainerId);
-        }
-    }
+    //         // Start the container
+    //         // await _deploymentService.RunContainer(_dockerClient, createdContainerId);
+    //     }
+    //
+     }
 }
