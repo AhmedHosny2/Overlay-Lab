@@ -70,7 +70,7 @@ namespace Portal.DeploymentService.Class
 
         // Create container or add user
         // each time user tries to connect/deploy to the container, this method will be called
-        public async Task<string> GetOrCreateContainerForUser(DockerClient client, string imageName, string Uid, string port)
+        public async Task<string> GetOrCreateContainerForUser(DockerClient client, string imageName, string exerciseName, string Uid, string port)
         {
             IList<ContainerListResponse> containersList = await client.Containers.ListContainersAsync(new ContainersListParameters
             {
@@ -81,7 +81,7 @@ namespace Portal.DeploymentService.Class
             if (containersList.Count == 0)
             {
                 Console.WriteLine("No containers found, create a new one");
-                return await InitializeContainer(client, imageName, Uid, port);
+                return await InitializeContainer(client, imageName, exerciseName, Uid, port);
 
             }
             bool imageCreated = false;
@@ -118,14 +118,14 @@ namespace Portal.DeploymentService.Class
             if (!imageCreated)
             {
                 Console.WriteLine("No containers with image specs found, create a new one");
-                return await InitializeContainer(client, imageName, Uid, port);
+                return await InitializeContainer(client, imageName, exerciseName, Uid, port);
             }
 
             return string.Empty;
         }
 
         // Create a new container
-        public async Task<string> InitializeContainer(DockerClient client, string imageName, string Uid, string port)
+        public async Task<string> InitializeContainer(DockerClient client, string imageName, string exerciseName, string Uid, string port)
         {
             await EnsureDockerImageExists(client, imageName);
 
@@ -159,6 +159,9 @@ namespace Portal.DeploymentService.Class
                 AttachStdin = true,
                 AttachStdout = true,
                 AttachStderr = true,
+                // set container name to the exercise name
+                // Hostname = exerciseName,
+
 
                 ExposedPorts = new Dictionary<string, EmptyStruct>
 
@@ -173,6 +176,7 @@ namespace Portal.DeploymentService.Class
             var createContainerParameters = new CreateContainerParameters(config)
             {
                 HostConfig = hostConfig,
+                Name = exerciseName
 
             };
 
@@ -267,11 +271,12 @@ namespace Portal.DeploymentService.Class
 
         // Get container details
         // todo only get needed details donext
-        public async Task<ServerInstance> FetchContainerDetails(DockerClient client, string containerId, string Uid)
+        public async Task<ServerInstance> FetchContainerDetails(DockerClient client, string exerciseName, string Uid)
         {
             Console.WriteLine("Getting container details...");
             try
             {
+                string containerId = await GetContainerId(client, exerciseName);
                 var containerDetails = await client.Containers.InspectContainerAsync(containerId);
                 string usersList = await RunCommandInContainer(client, new List<string> { "cat", "/users.txt" }, containerDetails.ID);
                 if (usersList != null && usersList.Contains(Uid))
@@ -379,5 +384,22 @@ namespace Portal.DeploymentService.Class
                 Console.WriteLine($"Error: {e.Message}");
             }
         }
+
+        // get conteriner id from container name
+        public async Task<string> GetContainerId(DockerClient client, string containerName)
+        {
+            IList<ContainerListResponse> containersList = await client.Containers.ListContainersAsync(new ContainersListParameters
+            {
+            });
+            foreach (var container in containersList)
+            {
+                if (container.Names.Contains($"/{containerName}"))
+                {
+                    return container.ID;
+                }
+            }
+            return string.Empty;
+        }
+
     }
 }
