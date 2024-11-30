@@ -17,7 +17,7 @@ namespace MyApp.Namespace
         private readonly IConfiguration _configuration;
         private readonly ILogger<GetContainerDetailsModel> _logger;
         private DockerClient _dockerClient;
-        public string ContainerId { get; set; }
+        public string ExerciseName { get; set; }
         public ServerInstance Container { get; set; }
         private string _uid = string.Empty;
 
@@ -35,14 +35,13 @@ namespace MyApp.Namespace
 
         }
 
-        public void OnGet(string id)
+        public void OnGet(string exerciseName)
         {
             _uid = User.FindFirst("uid")?.Value ?? string.Empty;
 
-            ContainerId = id;
             // log id 
-            _logger.LogInformation("ContainerId: {0}", ContainerId);
-            Container = _deploymentService.FetchContainerDetails(_dockerClient, ContainerId, _uid).Result;
+            _logger.LogInformation("ContainerId: {0}", ExerciseName);
+            Container = _deploymentService.FetchContainerDetails(_dockerClient, exerciseName, _uid).Result;
 
 
         }
