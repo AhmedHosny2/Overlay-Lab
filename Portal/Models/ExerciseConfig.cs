@@ -7,5 +7,7 @@ public class ExerciseConfig
     public string ExerciseDifficulty { get; set; }
     public string DockerImage { get; set; }
     public string port { get; set; }
+    public List<string> DisplayFields { get; set; } = new();
+
 
 }

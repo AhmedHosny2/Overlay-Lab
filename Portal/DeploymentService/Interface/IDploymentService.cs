@@ -16,7 +16,7 @@ namespace Portal.DeploymentService.Interface
         public Task<string> GetOrCreateContainerForUser(DockerClient client, string ImageName, string exerciseName, string Uid, string port);
         public Task<string> InitializeContainer(DockerClient client, string ImageName, string exerciseName, string Uid, string port);
         public Task<IList<ServerInstance>> ListContainers(DockerClient client, string Uid);
-        public Task<ServerInstance> FetchContainerDetails(DockerClient client, string exerciseName, string Uid);
+        public Task<ServerInstance> FetchContainerDetails(DockerClient client, string exerciseName, List<string> DisplayFields, string Uid);
         public Task StartContainer(DockerClient client, string ContainerId);
 
         public Task<string> RunCommandInContainer(DockerClient client, List<string> Command, string ContainerId);

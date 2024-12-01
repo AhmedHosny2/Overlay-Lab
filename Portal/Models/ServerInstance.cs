@@ -9,17 +9,17 @@ namespace Portal.Models
     public class ServerInstance
     {
         // Basic Container Information
-        public string InstanceId { get; set; } = string.Empty;
+        public string ID { get; set; } = string.Empty;
         public string Name { get; set; } = string.Empty;
-        public string Status { get; set; } = string.Empty;
-        public string ServerType { get; set; } = string.Empty; // Mapped from Image
+        public string State { get; set; } = string.Empty;
+        public string Image { get; set; } = string.Empty; // Mapped from Image
         public string IpAddress { get; set; } = string.Empty;
         public string Port { get; set; } = string.Empty;
         public DateTime Created { get; set; } = DateTime.MinValue;
 
+
         // Additional Attributes from ContainerInspectResponse
-        public string Path { get; set; } = string.Empty;
-        public long RestartCount { get; set; }
+        public string Config { get; set; } = string.Empty;
         // public string MountLabel { get; set; } = string.Empty;
         // public string ProcessLabel { get; set; } = string.Empty;
         // public List<MountPoint> Mounts { get; set; } = new List<MountPoint>();
@@ -30,59 +30,74 @@ namespace Portal.Models
         // Properties from HostConfig
 
         // Properties from NetworkSettings
-        public IDictionary<string, EndpointSettings> NetworkSettingsNetworks { get; set; } = new Dictionary<string, EndpointSettings>();
+        public NetworkSettings NetworkSettingsNetworks { get; set; }
 
         // Constructor to map ContainerInspectResponse to ServerInstance
         public ServerInstance()
         {
         }
 
-        public ServerInstance(ContainerInspectResponse containerInspectResponse)
+        public ServerInstance(ContainerInspectResponse containerInspectResponse, List<string> displayFields)
         {
-            if (containerInspectResponse != null)
+            if (containerInspectResponse == null || displayFields == null)
+                return;
+
+            var serverInstanceType = typeof(ServerInstance);
+            // set port 
+            this.Port = containerInspectResponse.Config.ExposedPorts.Keys.First();
+            this.Image = containerInspectResponse.Config.Image;
+            foreach (var field in displayFields)
             {
-                // Basic Information
-                this.InstanceId = containerInspectResponse.ID ?? string.Empty;
-                this.Name = containerInspectResponse.Name ?? string.Empty;
+                Console.WriteLine("Field: " + field);
+                // Get the property info of the field in ServerInstance
+                var serverInstanceProperty = serverInstanceType.GetProperty(field);
+                Console.WriteLine("ServerInstanceProperty: " + serverInstanceProperty);
+                if (serverInstanceProperty == null)
+                    continue; // Skip if the property doesn't exist
 
-                this.Created = containerInspectResponse.Created;
-                this.ServerType = containerInspectResponse.Config.Image ?? string.Empty;
+                // Get the value from ContainerInspectResponse
+                var value = GetPropertyValue(containerInspectResponse, field);
+                Console.WriteLine("value : " + value);
 
-                // Path and Args
-                this.Path = containerInspectResponse.Path ?? string.Empty;
-
-                // State
-                var state = containerInspectResponse.State;
-                if (state != null)
+                // Set the value to the ServerInstance property if not null
+                if (value != null)
                 {
-                    this.Status = state.Status ?? string.Empty;
-                }
-
-                this.RestartCount = containerInspectResponse.RestartCount;
-                // this.MountLabel = containerInspectResponse.MountLabel ?? string.Empty;
-
-
-                // NetworkSettings
-                var netSettings = containerInspectResponse.NetworkSettings;
-                if (netSettings != null)
-                {
-
-                    this.NetworkSettingsNetworks = netSettings.Networks ?? new Dictionary<string, EndpointSettings>();
-                }
-
-                // Set IPAddress and Port
-                var firstNetwork = netSettings?.Networks?.Values.FirstOrDefault();
-                if (firstNetwork != null)
-                {
-                    this.IpAddress = firstNetwork.IPAddress ?? string.Empty;
-                    // get port from config 
-                    if (containerInspectResponse.Config.ExposedPorts.Count > 0)
+                    try
                     {
-                        var port = containerInspectResponse.Config.ExposedPorts.Keys.First();
-                        this.Port = port;
+                        // Convert the value to the property type if necessary
+                        var convertedValue = Convert.ChangeType(value, serverInstanceProperty.PropertyType);
+                        serverInstanceProperty.SetValue(this, convertedValue);
+                    }
+                    catch
+                    {
+                        // Handle conversion errors if necessary
                     }
                 }
             }
+
+            Console.WriteLine("ServerInstance created");
+
+        }
+
+        public static object GetPropertyValue(object obj, string propertyName)
+        {
+            if (obj == null || string.IsNullOrEmpty(propertyName))
+                return null;
+
+            var parts = propertyName.Split('.');
+            foreach (var part in parts)
+            {
+                if (obj == null)
+                    return null;
+
+                var type = obj.GetType();
+                var propertyInfo = type.GetProperty(part);
+                if (propertyInfo == null)
+                    return null;
+
+                obj = propertyInfo.GetValue(obj, null);
+            }
+            return obj;
         }
     }
 }

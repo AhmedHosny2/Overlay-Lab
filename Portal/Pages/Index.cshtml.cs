@@ -61,7 +61,6 @@ public class IndexModel : PageModel
             Exercises.Add(config);
 
             // Log them
-            _logger.LogInformation($"Exercise: {config.ExerciseTile}");
         }
         return Exercises;
     }
@@ -110,7 +109,6 @@ public class IndexModel : PageModel
     {
         try
         {
-            _logger.LogInformation("Initiating container deployment for exercise: {ExerciseName}", ExerciseName);
             // get excercise config
             ExerciseConfig exerciseConfig = GetExercises().FirstOrDefault(e => e.ExerciseName == ExerciseName);
             // if not found throw exception
@@ -120,7 +118,6 @@ public class IndexModel : PageModel
             }
             _uid = User.FindFirst("uid")?.Value ?? string.Empty;
 
-            _logger.LogInformation("Deploying container with image: {ImageName}", exerciseConfig.DockerImage);
 
             _logger.LogInformation("Deploying container with image: {Image}", exerciseConfig.DockerImage);
             _logger.LogInformation("Deploying container with port: {port}", exerciseConfig.port);

@@ -16,7 +16,7 @@ builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSingleton<IDeploymentService, DeploymentService>();
 
 // Load configuration for main appsettings
-builder.Configuration.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+// builder.Configuration.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
 
 // Dynamically load all exercise configuration files
 var exerciseConfigs = Directory.GetFiles("ExConfiguration", "*.json");

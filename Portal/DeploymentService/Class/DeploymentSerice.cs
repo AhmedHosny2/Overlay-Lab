@@ -95,8 +95,8 @@ namespace Portal.DeploymentService.Class
                     string usersList = await RunCommandInContainer(client, new List<string> { "cat", "/users.txt" }, container.ID);
                     Console.WriteLine($"Users list: {usersList}");
                     // Check if the user is already in the list
-                    var users = usersList.Split(',');
-                    if (users.Contains(Uid))
+                    // important must use the usersList without split here 
+                    if (usersList.Contains(Uid))
                     {
                         Console.WriteLine("User already in the list");
                         return container.ID;
@@ -249,9 +249,9 @@ namespace Portal.DeploymentService.Class
                         containersList.Add(new ServerInstance
                         {
                             Name = container.Names.FirstOrDefault() ?? "Unknown",
-                            InstanceId = container.ID.Substring(0, 5),
-                            ServerType = container.Image.Split("@sha256")[0],
-                            Status = container.State,
+                            ID = container.ID.Substring(0, 5),
+                            Image = container.Image.Split("@sha256")[0],
+                            State = container.State,
                             IpAddress = privateIP,
                             Port = port,
                             Created = container.Created
@@ -271,12 +271,13 @@ namespace Portal.DeploymentService.Class
 
         // Get container details
         // todo only get needed details donext
-        public async Task<ServerInstance> FetchContainerDetails(DockerClient client, string exerciseName, string Uid)
+        public async Task<ServerInstance> FetchContainerDetails(DockerClient client, string exerciseName, List<string> DisplayFields, string Uid)
         {
             Console.WriteLine("Getting container details...");
             try
             {
                 string containerId = await GetContainerId(client, exerciseName);
+
                 var containerDetails = await client.Containers.InspectContainerAsync(containerId);
                 string usersList = await RunCommandInContainer(client, new List<string> { "cat", "/users.txt" }, containerDetails.ID);
                 if (usersList != null && usersList.Contains(Uid))
@@ -288,7 +289,7 @@ namespace Portal.DeploymentService.Class
                     Console.WriteLine("User not in the list");
                     throw new Exception("User not in the list");
                 }
-                ServerInstance container = new ServerInstance(containerDetails);
+                ServerInstance container = new ServerInstance(containerDetails, DisplayFields);
 
                 // Additional processing can be done here if needed
 

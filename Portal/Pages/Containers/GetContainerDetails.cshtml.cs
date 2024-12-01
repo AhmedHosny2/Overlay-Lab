@@ -18,6 +18,7 @@ namespace MyApp.Namespace
         private readonly ILogger<GetContainerDetailsModel> _logger;
         private DockerClient _dockerClient;
         public string ExerciseName { get; set; }
+        public List<string> DisplayFields { get; set; }
         public ServerInstance Container { get; set; }
         private string _uid = string.Empty;
 
@@ -38,13 +39,51 @@ namespace MyApp.Namespace
         public void OnGet(string exerciseName)
         {
             _uid = User.FindFirst("uid")?.Value ?? string.Empty;
+            // get DisplayFields from config file
+            var exerciseConfig = _configuration.GetSection("Exercises").GetSection(exerciseName);
+            _logger.LogInformation("ExerciseName: {0}", exerciseConfig);
+            // load data from json files 
+            var Exercises = GetExercises();
+            // get the display fields from the config file
+            DisplayFields = Exercises.Find(e => e.ExerciseName == exerciseName).DisplayFields;
 
             // log id 
-            _logger.LogInformation("ContainerId: {0}", ExerciseName);
-            Container = _deploymentService.FetchContainerDetails(_dockerClient, exerciseName, _uid).Result;
+            // _logger.LogInformation("ContainerId: {0}", DisplayFields);
+
+            Container = _deploymentService.FetchContainerDetails(_dockerClient, exerciseName, DisplayFields, _uid).Result;
 
 
         }
+
+
+        //todo convert this to DI 
+
+        public List<ExerciseConfig> GetExercises()
+        {
+            List<ExerciseConfig> MyExercises = new();
+
+            var exerciseConfigs = Directory.GetFiles("ExConfiguration", "*.json");
+
+            // todo uise the 
+            //  _configuration var with DI 
+
+
+            foreach (var filePath in exerciseConfigs)
+            {
+                var fileConfig = new ConfigurationBuilder()
+                    .AddJsonFile(filePath)
+                    .Build();
+
+                var config = new ExerciseConfig();
+                fileConfig.Bind(config);
+                MyExercises.Add(config);
+
+                // Log them
+            }
+            return MyExercises;
+        }
+
+
 
         public static object RenderProperty(object value)
         {
@@ -68,7 +107,7 @@ namespace MyApp.Namespace
                 }
                 else
                 {
-                    return string.Empty;    
+                    return string.Empty;
                 }
             }
             else if (typeof(IEnumerable<object>).IsAssignableFrom(type))
