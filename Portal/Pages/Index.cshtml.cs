@@ -172,6 +172,28 @@ public class IndexModel : PageModel
         }
     }
 
+    public async Task<PageResult> OnPostStopInstance(string exerciseName)
+    {
+                _uid = User.FindFirst("uid")?.Value ?? string.Empty;
+
+        _logger.LogInformation($"Stopping container: {exerciseName}");
+        // get container id
+        var serverDetails = await _deploymentService.FetchContainerDetails(_dockerClient, exerciseName, new List<string> { "ID" }, _uid);
+        var instanceId = serverDetails.ID;
+        _logger.LogInformation($"Stopping container: {instanceId}");
+        try
+        {
+            await _deploymentService.RemoveUserOrStopContainer(_dockerClient, instanceId, _uid);
+            _logger.LogInformation($"Container stopped: {instanceId}");
+            return Page();
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, $"Failed to stop container: {instanceId}");
+            ModelState.AddModelError("", "There was an error stopping the container. Please try again later.");
+            return Page();
+        }
+    }
 
     // public async Task OnPostContainerIDE(string IpAddress, string instanceId, string Port)
     // {

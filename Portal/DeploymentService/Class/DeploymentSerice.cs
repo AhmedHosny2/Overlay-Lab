@@ -386,6 +386,26 @@ namespace Portal.DeploymentService.Class
             }
         }
 
+
+         public async Task RemoveUserOrStopContainer(DockerClient client, string ContainerId,string Uid){
+            Console.WriteLine("the current user id\n\n\n\n\n\n " + Uid);
+            // get users list in this container 
+            var usersList = await RunCommandInContainer(client, new List<string> { "cat", "/users.txt" }, ContainerId);
+            // remove user from the list
+            var updatedUsersList = usersList.Split(',').Where(x =>!x.Contains(Uid)).ToList();
+            // update the list of users
+            await RunCommandInContainer(client, new List<string> { $"echo \"{string.Join(",", updatedUsersList)}\" > users.txt" }, ContainerId);
+            Console.WriteLine("User removed from the list of users");
+            // print new list 
+            Console.WriteLine($"Updated users list: {string.Join(",", updatedUsersList)}");
+            // if the list is empty stop the container
+            if (updatedUsersList.Count == 0)
+            {
+                await client.Containers.StopContainerAsync(ContainerId, new ContainerStopParameters());
+                Console.WriteLine("Container stopped successfully");
+            }
+
+         }
         // get conteriner id from container name
         public async Task<string> GetContainerId(DockerClient client, string containerName)
         {

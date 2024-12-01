@@ -46,7 +46,10 @@
                                         <input type="hidden" name="ExerciseName" value="@exercise.ExerciseName" />
                                         <button class="btn-start" type="submit">Start</button>
                                     </form>
-                                    <button class="btn-stop" type="submit">Stop</button>
+                                    <form method="post" asp-page-handler="StopInstance">
+                                        <input type="hidden" name="ExerciseName" value="@exercise.ExerciseName" />
+                                        <button class="btn-stop" type="submit">Stop</button>
+                                    </form>
                                 </td>
                             </tr>
                         }
