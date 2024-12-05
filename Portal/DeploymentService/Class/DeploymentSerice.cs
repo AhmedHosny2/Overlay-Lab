@@ -212,9 +212,10 @@ namespace Portal.DeploymentService.Class
         }
         // List containers
 
-        public async Task<IList<ServerInstance>> ListContainers(DockerClient client, string Uid)
+        public async Task<IList<string>> ListUsersContainer(DockerClient client, string Uid)
         {
-            IList<ServerInstance> containersList = new List<ServerInstance>();
+
+            IList<string> containersList = new List<string>();
             Console.WriteLine("Listing containers...");
             // print uid 
             Console.WriteLine($"UID: {Uid}");
@@ -232,31 +233,10 @@ namespace Portal.DeploymentService.Class
                     {
                         continue;
                     }
-                    var firstNetwork = container.NetworkSettings.Networks.Values.FirstOrDefault();
-                    if (firstNetwork != null)
-                    {
-                        // Get the private IP address from the first network
-                        var privateIP = firstNetwork.IPAddress;
+                    string imageName = container.Image.Split("@sha256")[0];
+                    containersList.Add(imageName);
 
-                        // Get the public port if available, else assign "No port"
-                        string port = "No port";
-                        if (container.Ports != null && container.Ports.Count > 0)
-                        {
-                            port = container.Ports[0].PublicPort.ToString();
-                        }
 
-                        // Add container details to the list of ServerInstance
-                        containersList.Add(new ServerInstance
-                        {
-                            Name = container.Names.FirstOrDefault() ?? "Unknown",
-                            ID = container.ID.Substring(0, 5),
-                            Image = container.Image.Split("@sha256")[0],
-                            State = container.State,
-                            IpAddress = privateIP,
-                            Port = port,
-                            Created = container.Created
-                        });
-                    }
                 }
 
                 Console.WriteLine("Containers listed successfully");
@@ -265,7 +245,7 @@ namespace Portal.DeploymentService.Class
             catch (Exception e)
             {
                 Console.WriteLine($"Error: {e.Message}");
-                return new List<ServerInstance>();
+                return new List<string>();
             }
         }
 

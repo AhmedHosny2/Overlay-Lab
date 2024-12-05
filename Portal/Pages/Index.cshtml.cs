@@ -19,12 +19,13 @@ public class IndexModel : PageModel
     private readonly ILogger<IndexModel> _logger;
     public string UserName { get; set; } = string.Empty;
     private string _uid = string.Empty;
+    public IList<string> usersContainer;
 
     [BindProperty]
     [Required(ErrorMessage = "Instance ID is required.")]
     public string InstanceId { get; set; } = string.Empty;
 
-    public IList<ServerInstance> Containers { get; set; } = new List<ServerInstance>();
+    // public IList<ServerInstance> Containers { get; set; } = new List<ServerInstance>();
 
     private readonly IConfiguration _configuration;
 
@@ -68,7 +69,8 @@ public class IndexModel : PageModel
     public async Task OnGetAsync()
     {
         _uid = User.FindFirst("uid")?.Value ?? string.Empty;
-        Containers = await _deploymentService.ListContainers(_dockerClient, _uid);
+        usersContainer = await _deploymentService.ListUsersContainer(_dockerClient, _uid);
+
         UserName = User.FindFirst("name")?.Value.Split(",")[0] ?? string.Empty;
         // get all exercise configurations
         Exercises = GetExercises();

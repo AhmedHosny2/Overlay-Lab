@@ -42,14 +42,26 @@
                                 <td>@exercise.ExerciseDescription</td>
                                 <td>@exercise.ExerciseDifficulty</td>
                                 <td class="exercise-actions">
-                                    <form method="post" asp-page-handler="DeployInstance">
-                                        <input type="hidden" name="ExerciseName" value="@exercise.ExerciseName" />
-                                        <button class="btn-start" type="submit">Start</button>
-                                    </form>
-                                    <form method="post" asp-page-handler="StopInstance">
-                                        <input type="hidden" name="ExerciseName" value="@exercise.ExerciseName" />
-                                        <button class="btn-stop" type="submit">Stop</button>
-                                    </form>
+                                    @if (Model.usersContainer.Contains(exercise.DockerImage))
+                                    {
+                                        <!-- Display Resume and Stop buttons -->
+                                        <form method="post" asp-page-handler="DeployInstance">
+                                            <input type="hidden" name="ExerciseName" value="@exercise.ExerciseName" />
+                                            <button class="btn btn-outline-primary" type="submit">Resume</button>
+                                        </form>
+                                        <form method="post" asp-page-handler="StopInstance">
+                                            <input type="hidden" name="ExerciseName" value="@exercise.ExerciseName" />
+                                            <button class="btn btn-outline-danger" type="submit">Stop</button>
+                                        </form>
+                                    }
+                                    else
+                                    {
+                                        <!-- Display Start button -->
+                                        <form method="post" asp-page-handler="DeployInstance">
+                                            <input type="hidden" name="ExerciseName" value="@exercise.ExerciseName" />
+                                            <button class="btn btn-outline-success" type="submit">Start</button>
+                                        </form>
+                                    }
                                 </td>
                             </tr>
                         }
