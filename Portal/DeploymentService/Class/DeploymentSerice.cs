@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Portal.DeploymentService.Interface;
 using Portal.Models;
+using Newtonsoft.Json;
 
 namespace Portal.DeploymentService.Class
 {
@@ -265,6 +266,9 @@ namespace Portal.DeploymentService.Class
                 string containerId = await GetContainerId(client, exerciseName);
 
                 var containerDetails = await client.Containers.InspectContainerAsync(containerId);
+                // convert container detials to json format
+                    string containerDetailsJson = JsonConvert.SerializeObject(containerDetails, Formatting.Indented);
+                // Console.WriteLine($"Container details: {containerDetailsJson}");
                 string usersList = await RunCommandInContainer(client, new List<string> { "cat", "/users.txt" }, containerDetails.ID);
                 if (usersList != null && usersList.Contains(Uid))
                 {
@@ -275,7 +279,7 @@ namespace Portal.DeploymentService.Class
                     Console.WriteLine("User not in the list");
                     throw new Exception("User not in the list");
                 }
-                ServerInstance container = new ServerInstance(containerDetails, DisplayFields);
+                ServerInstance container = new ServerInstance(containerDetailsJson, DisplayFields);
 
                 // Additional processing can be done here if needed
 

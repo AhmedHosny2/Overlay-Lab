@@ -28,11 +28,6 @@ namespace MyApp.Namespace
             _configuration = configuration;
             _logger = logger;
             _dockerClient = _deploymentService.CreateDockerClient();
-            // ContainerId =
-
-            // Load the containers data
-            // TODO could be loaded in the home page once and passed as a parameter
-            // TODO handle the case where the container is not found 
 
         }
 
@@ -45,28 +40,25 @@ namespace MyApp.Namespace
             // load data from json files 
             var Exercises = GetExercises();
             // get the display fields from the config file
-            DisplayFields = Exercises.Find(e => e.ExerciseName == exerciseName).DisplayFields;
-
-            // log id 
-            // _logger.LogInformation("ContainerId: {0}", DisplayFields);
+            var exercise = Exercises.Find(e => e.ExerciseName == exerciseName);
+            if (exercise != null)
+            {
+                DisplayFields = exercise.DisplayFields;
+            }
+            else
+            {
+                _logger.LogWarning("Exercise with name {0} not found.", exerciseName);
+                DisplayFields = new List<string>();
+            }
 
             Container = _deploymentService.FetchContainerDetails(_dockerClient, exerciseName, DisplayFields, _uid).Result;
-
-
         }
-
-
-        //todo convert this to DI 
 
         public List<ExerciseConfig> GetExercises()
         {
             List<ExerciseConfig> MyExercises = new();
 
             var exerciseConfigs = Directory.GetFiles("ExConfiguration", "*.json");
-
-            // todo uise the 
-            //  _configuration var with DI 
-
 
             foreach (var filePath in exerciseConfigs)
             {
@@ -78,7 +70,6 @@ namespace MyApp.Namespace
                 fileConfig.Bind(config);
                 MyExercises.Add(config);
 
-                // Log them
             }
             return MyExercises;
         }
@@ -146,9 +137,5 @@ namespace MyApp.Namespace
             }
         }
 
-
-        // DeployInstance is the function name triggered with the deploy button in the UI
-
-        // Main function to run the docker commands
     }
 }

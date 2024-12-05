@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json;
 using Docker.DotNet.Models;
+using System.Text.Json.Nodes;
 
 namespace Portal.Models
 {
@@ -16,8 +17,7 @@ namespace Portal.Models
         public string IpAddress { get; set; } = string.Empty;
         public string Port { get; set; } = string.Empty;
         public DateTime Created { get; set; } = DateTime.MinValue;
-
-
+        public Dictionary<string, string> map = new Dictionary<string, string>();
         // Additional Attributes from ContainerInspectResponse
         public string Config { get; set; } = string.Empty;
         // public string MountLabel { get; set; } = string.Empty;
@@ -37,67 +37,82 @@ namespace Portal.Models
         {
         }
 
-        public ServerInstance(ContainerInspectResponse containerInspectResponse, List<string> displayFields)
+        public ServerInstance(string containerInspectResponse, List<string> displayFields)
         {
             if (containerInspectResponse == null || displayFields == null)
                 return;
 
             var serverInstanceType = typeof(ServerInstance);
-            // set port 
-            this.Port = containerInspectResponse.Config.ExposedPorts.Keys.First();
-            this.Image = containerInspectResponse.Config.Image;
+            // in all cases get image and port number by defualt 
+
+            // this.Port = containerInspectResponse.Config.ExposedPorts.Keys.First();
+            // this.Image = containerInspectResponse.Config.Image;
+
+
             foreach (var field in displayFields)
             {
                 Console.WriteLine("Field: " + field);
-                // Get the property info of the field in ServerInstance
-                var serverInstanceProperty = serverInstanceType.GetProperty(field);
-                Console.WriteLine("ServerInstanceProperty: " + serverInstanceProperty);
-                if (serverInstanceProperty == null)
-                    continue; // Skip if the property doesn't exist
-
-                // Get the value from ContainerInspectResponse
-                var value = GetPropertyValue(containerInspectResponse, field);
-                Console.WriteLine("value : " + value);
-
-                // Set the value to the ServerInstance property if not null
-                if (value != null)
+                // get display filed key, last part of the string after the last dot if not * 
+                var key = field.Split('.').Last();
+                if (key == "*")
                 {
-                    try
-                    {
-                        // Convert the value to the property type if necessary
-                        var convertedValue = Convert.ChangeType(value, serverInstanceProperty.PropertyType);
-                        serverInstanceProperty.SetValue(this, convertedValue);
-                    }
-                    catch
-                    {
-                        // Handle conversion errors if necessary
-                    }
+                    // get elment befor last 
+                    key = field.Split('.').Reverse().Skip(1).First();
                 }
+                Console.WriteLine("Key: " + key);
+                // get value from json
+                var value = GetValueFromJson(containerInspectResponse, field);
+                Console.WriteLine("Value: " + value);
+                // if (value != null)
+                // {
+                //     // set value to the object 
+                //     serverInstanceType.GetProperty(key)?.SetValue(this, value);
+                // }
+                map[key] = value;
+
+
+
+            }
+            // log map
+            foreach (var item in map)
+            {
+                Console.WriteLine("Key: " + item.Key + " Value: " + item.Value);
             }
 
             Console.WriteLine("ServerInstance created");
 
         }
 
-        public static object GetPropertyValue(object obj, string propertyName)
+        public static string GetValueFromJson(string json, string keyPath)
         {
-            if (obj == null || string.IsNullOrEmpty(propertyName))
-                return null;
-
-            var parts = propertyName.Split('.');
-            foreach (var part in parts)
+            try
             {
-                if (obj == null)
+                var jsonObject = JsonNode.Parse(json);
+
+                if (jsonObject == null)
                     return null;
 
-                var type = obj.GetType();
-                var propertyInfo = type.GetProperty(part);
-                if (propertyInfo == null)
-                    return null;
+                var keys = keyPath.Split('.');
+                JsonNode currentNode = jsonObject;
 
-                obj = propertyInfo.GetValue(obj, null);
+                foreach (var key in keys)
+                {
+                    currentNode = currentNode?[key];
+
+                    if (currentNode == null)
+                    {
+                        return null;
+                    }
+                }
+
+                return currentNode?.ToString();
             }
-            return obj;
+            catch (Exception)
+            {
+                return null;
+            }
         }
+
+
     }
 }

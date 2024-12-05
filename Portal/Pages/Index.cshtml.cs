@@ -25,7 +25,6 @@ public class IndexModel : PageModel
     [Required(ErrorMessage = "Instance ID is required.")]
     public string InstanceId { get; set; } = string.Empty;
 
-    // public IList<ServerInstance> Containers { get; set; } = new List<ServerInstance>();
 
     private readonly IConfiguration _configuration;
 
@@ -43,7 +42,6 @@ public class IndexModel : PageModel
     // function return list of ex 
     public List<ExerciseConfig> GetExercises()
     {
-        List<ExerciseConfig> MyExercises = new();
 
         var exerciseConfigs = Directory.GetFiles("ExConfiguration", "*.json");
 
@@ -74,9 +72,7 @@ public class IndexModel : PageModel
         UserName = User.FindFirst("name")?.Value.Split(",")[0] ?? string.Empty;
         // get all exercise configurations
         Exercises = GetExercises();
-
-
-
+        // for testing only 
         // Log the claims for debugging
         // foreach (var claim in User.Claims)
         // {
@@ -92,15 +88,12 @@ public class IndexModel : PageModel
         try
         {
             await DeployContainerAsync(ExerciseName);
-            // Redirect to the Container Details page, passing ExerciseName as a query parameter
-            // todo optimize this url path
             return RedirectToPage("Containers/GetContainerDetails", new { exerciseName = ExerciseName });
 
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error occurred during container deployment.");
-            // Add error to ModelState to display on the page
             ModelState.AddModelError(string.Empty, "An error occurred while deploying the container. Please try again.");
             return Page();
         }
@@ -111,8 +104,7 @@ public class IndexModel : PageModel
     {
         try
         {
-            // get excercise config
-            ExerciseConfig exerciseConfig = GetExercises().FirstOrDefault(e => e.ExerciseName == ExerciseName);
+            ExerciseConfig? exerciseConfig = GetExercises().FirstOrDefault(e => e.ExerciseName == ExerciseName);
             // if not found throw exception
             if (exerciseConfig == null)
             {
@@ -121,17 +113,14 @@ public class IndexModel : PageModel
             _uid = User.FindFirst("uid")?.Value ?? string.Empty;
 
 
-            _logger.LogInformation("Deploying container with image: {Image}", exerciseConfig.DockerImage);
-            _logger.LogInformation("Deploying container with port: {port}", exerciseConfig.port);
             _logger.LogInformation("Deploying container with uid: {uid}", _uid);
 
 
             // Create the container
             string createdContainerId = await _deploymentService.GetOrCreateContainerForUser(_dockerClient, exerciseConfig.DockerImage, exerciseConfig.ExerciseName, _uid, exerciseConfig.port ?? "");
-
-            // Store the created container id in the session
             try
             {
+                // store id in session just for testing
                 HttpContext.Session.SetString("CreatedContainerId", createdContainerId);
             }
             catch (Exception ex)
@@ -145,33 +134,11 @@ public class IndexModel : PageModel
         catch (Exception e)
         {
             _logger.LogError(e, "Error occurred during container deployment.");
-            // Add error to ModelState to display on the page
             ModelState.AddModelError(string.Empty, "An error occurred while deploying the container. Please try again.");
             return Page();
         }
 
-        // Start the container
-        // await _deploymentService.RunContainer(_dockerClient, createdContainerId);
-    }
 
-
-    // todo now convert to stop container
-    public async Task<RedirectToPageResult> OnPostPauseInstance(string instanceId)
-
-    {
-        _logger.LogInformation($"Pausing container: {instanceId}");
-
-        try
-        {
-            await _deploymentService.PauseContainer(_dockerClient, instanceId);
-            return RedirectToPage();
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e, $"Failed to pause container: {instanceId}");
-            ModelState.AddModelError("", "There was an error pausing the container. Please try again later.");
-            return RedirectToPage();
-        }
     }
 
     public async Task OnPostStopInstance(string exerciseName)
@@ -199,6 +166,8 @@ public class IndexModel : PageModel
         }
     }
 
+
+    // TODO fix this if needed or remove it 
     // public async Task OnPostContainerIDE(string IpAddress, string instanceId, string Port)
     // {
     //     _logger.LogInformation($"Opening container IDE for container: {instanceId}");
