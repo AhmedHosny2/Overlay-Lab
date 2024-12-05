@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using System.Diagnostics;
 using System.IO;
 
-namespace MyApp.Namespace
+namespace Portal.Pages.Containers
 {
     public class ContainerIDEModel : PageModel
     {
@@ -21,8 +21,8 @@ namespace MyApp.Namespace
 
         public void OnGet()
         {
-            IPAddress = HttpContext.Session.GetString("IpAddress") ?? "127.0.0.1";
-            Port = HttpContext.Session.GetString("Port") ?? "8080";
+            IPAddress = HttpContext.Session.GetString("IpAddress") ?? "XX.XX.XX.XX";
+            Port = HttpContext.Session.GetString("Port") ?? "XXXX";
             InstanceId = HttpContext.Session.GetString("InstanceId") ?? "default-instance";
         }
 

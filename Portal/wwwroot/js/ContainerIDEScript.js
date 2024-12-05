@@ -17,23 +17,7 @@ fetch('https://jsonplaceholder.typicode.com/posts/1')
   })
   .catch(error => {
     console.error('Fetch Error:', error);
-  });`,
-  python: `# Python Example
-def greet(name):
-    print(f"Hello, {name}!")
-
-greet("World")
-
-# Example of an HTTP request using requests
-import requests
-
-try:
-    response = requests.get("https://jsonplaceholder.typicode.com/posts/1")
-    response.raise_for_status()
-    data = response.json()
-    print("Fetched Data:", data)
-except requests.exceptions.RequestException as e:
-    print("Fetch Error:", e)`,
+  });`
 };
 
 // Initialize CodeMirror
@@ -53,18 +37,18 @@ const editor = CodeMirror.fromTextArea(document.getElementById("code-editor"), {
 });
 
 // Handle Language Change
-const languageSelect = document.getElementById("language-select");
-languageSelect.addEventListener("change", function () {
-  const mode = this.value;
-  editor.setOption("mode", mode);
-  if (defaultContent[mode]) {
-    editor.setValue(defaultContent[mode]);
-  } else {
-    editor.setValue("// Start coding...");
-  }
-  // Reset theme if necessary
-  // editor.setOption("theme", themeSelect.value);
-});
+// const languageSelect = document.getElementById("language-select");
+// languageSelect.addEventListener("change", function () {
+//   const mode = this.value;
+//   editor.setOption("mode", mode);
+//   if (defaultContent[mode]) {
+//     editor.setValue(defaultContent[mode]);
+//   } else {
+//     editor.setValue("// Start coding...");
+//   }
+//   // Reset theme if necessary
+//   // editor.setOption("theme", themeSelect.value);
+// });
 
 // Handle Theme Change
 // const themeSelect = document.getElementById("theme-select");
@@ -74,7 +58,7 @@ languageSelect.addEventListener("change", function () {
 // });
 
 // Initialize with default content
-editor.setValue(defaultContent[languageSelect.value] || "// Start coding...");
+editor.setValue(defaultContent["javascript"] || "// Start coding...");
 
 // Copy to Clipboard Function
 function copyToClipboard(elementId) {
@@ -99,24 +83,24 @@ copyButtons.forEach((button) => {
 });
 
 // Initialize Pyodide to run Python code
-let pyodide = null;
-const loadingOverlay = document.getElementById("loading-overlay");
+// let pyodide = null;
+// const loadingOverlay = document.getElementById("loading-overlay");
 
-async function initializePyodide() {
-  try {
-    loadingOverlay.style.display = "flex";
-    pyodide = await loadPyodide({
-      indexURL: "https://cdn.jsdelivr.net/pyodide/v0.23.4/full/",
-    });
-    loadingOverlay.style.display = "none";
-    console.log("Pyodide loaded successfully.");
-  } catch (error) {
-    loadingOverlay.textContent = "Failed to load Pyodide.";
-    console.error("Error loading Pyodide:", error);
-  }
-}
+// async function initializePyodide() {
+//   try {
+//     loadingOverlay.style.display = "flex";
+//     pyodide = await loadPyodide({
+//       indexURL: "https://cdn.jsdelivr.net/pyodide/v0.23.4/full/",
+//     });
+//     loadingOverlay.style.display = "none";
+//     console.log("Pyodide loaded successfully.");
+//   } catch (error) {
+//     loadingOverlay.textContent = "Failed to load Pyodide.";
+//     console.error("Error loading Pyodide:", error);
+//   }
+// }
 
-initializePyodide();
+// initializePyodide();
 
 // Append message to output area
 function appendOutput(message) {
@@ -180,7 +164,7 @@ document.getElementById("run-button").addEventListener("click", runCode);
 
 async function runCode() {
   const code = editor.getValue();
-  const language = languageSelect.value;
+  const language = "javascript";
   const outputElement = document.getElementById("output");
 
   // Clear previous output
@@ -193,23 +177,24 @@ async function runCode() {
   overrideConsole();
 
   // Show loading overlay
-  loadingOverlay.style.display = "flex";
+  // loadingOverlay.style.display = "flex";
 
   // Supported client-side languages
-  const clientSideLanguages = ["javascript", "python"];
+  const clientSideLanguages = ["javascript"];
 
   if (clientSideLanguages.includes(language)) {
     if (language === "javascript") {
       executeJavaScript(code, outputElement);
-    } else if (language === "python") {
-      await executePython(code, outputElement);
     }
+    // else if (language === "python") {
+    //   await executePython(code, outputElement);
+    // }
   } else {
     // Alert the user if an unsupported language is selected
     alert("This language is not supported yet.");
     // Restore console and hide loading overlay
     restoreConsole();
-    loadingOverlay.style.display = "none";
+    // loadingOverlay.style.display = "none";
   }
 }
 
@@ -223,7 +208,7 @@ function executeJavaScript(code, outputElement) {
     userFunction()
       .then(() => {
         // Hide loading overlay after execution completes
-        loadingOverlay.style.display = "none";
+        // loadingOverlay.style.display = "none";
         // Restore console to prevent capturing logs from future operations
         // Commented out to keep console overridden for async logs
         // restoreConsole();
@@ -231,80 +216,80 @@ function executeJavaScript(code, outputElement) {
       .catch((error) => {
         appendOutput("Error: " + formatOutput(error));
         // Hide loading overlay
-        loadingOverlay.style.display = "none";
+        // loadingOverlay.style.display = "none";
         // Restore console
         restoreConsole();
       });
   } catch (error) {
     appendOutput("Error: " + formatOutput(error));
     // Hide loading overlay
-    loadingOverlay.style.display = "none";
+    // loadingOverlay.style.display = "none";
     // Restore console
     restoreConsole();
   }
 }
 
 // Function to execute Python code using Pyodide
-async function executePython(code, outputElement) {
-  if (!pyodide) {
-    appendOutput("Error: Pyodide is not loaded yet.");
-    loadingOverlay.style.display = "none";
-    // Restore console
-    restoreConsole();
-    return;
-  }
+// async function executePython(code, outputElement) {
+//   if (!pyodide) {
+//     appendOutput("Error: Pyodide is not loaded yet.");
+//     loadingOverlay.style.display = "none";
+//     // Restore console
+//     restoreConsole();
+//     return;
+//   }
 
-  // Redirect stdout and stderr
-  let output = "";
-  const stdout = (text) => {
-    output += text;
-  };
-  const stderr = (text) => {
-    output += "Error: " + text;
-  };
+//   // Redirect stdout and stderr
+//   let output = "";
+//   const stdout = (text) => {
+//     output += text;
+//   };
+//   const stderr = (text) => {
+//     output += "Error: " + text;
+//   };
 
-  pyodide.setStdout({
-    batched: (text) => {
-      appendOutput(formatOutput(text));
-    },
-  });
-  pyodide.setStderr({
-    batched: (text) => {
-      appendOutput("Error: " + formatOutput(text));
-    },
-  });
+//   pyodide.setStdout({
+//     batched: (text) => {
+//       appendOutput(formatOutput(text));
+//     },
+//   });
+//   pyodide.setStderr({
+//     batched: (text) => {
+//       appendOutput("Error: " + formatOutput(text));
+//     },
+//   });
 
-  try {
-    // Allow access to js module for HTTP requests if needed
-    pyodide.globals.set("js", pyodide.pyimport("js"));
-    await pyodide.runPythonAsync(code);
-    // Hide loading overlay after execution
-    loadingOverlay.style.display = "none";
-    // Restore console
-    restoreConsole();
-  } catch (error) {
-    appendOutput("Error: " + formatOutput(error));
-    // Hide loading overlay
-    loadingOverlay.style.display = "none";
-    // Restore console
-    restoreConsole();
-  }
-}
+//   try {
+//     // Allow access to js module for HTTP requests if needed
+//     pyodide.globals.set("js", pyodide.pyimport("js"));
+//     await pyodide.runPythonAsync(code);
+//     // Hide loading overlay after execution
+//     loadingOverlay.style.display = "none";
+//     // Restore console
+//     restoreConsole();
+//   } catch (error) {
+//     appendOutput("Error: " + formatOutput(error));
+//     // Hide loading overlay
+//     loadingOverlay.style.display = "none";
+//     // Restore console
+//     restoreConsole();
+//   }
+// }
 
 // Initialize the editor with sample code on window load
 window.addEventListener("load", () => {
-  const language = languageSelect.value;
+  const language = "javascript";
   if (defaultContent[language]) {
     editor.setValue(defaultContent[language]);
   }
 });
 
 // Update the editor content when the language changes
-languageSelect.addEventListener("change", () => {
-  const language = languageSelect.value;
-  if (defaultContent[language]) {
-    editor.setValue(defaultContent[language]);
-  } else {
-    editor.setValue("// Start coding...");
-  }
-});
+// languageSelect.addEventListener("change", () => {
+//   const language = languageSelect.value;
+//   if (defaultContent[language]) {
+//     editor.setValue(defaultContent[language]);
+//   } else {
+//     editor.setValue("// Start coding...");
+//   }
+// });

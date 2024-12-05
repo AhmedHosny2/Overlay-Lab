@@ -64,6 +64,12 @@ namespace MyApp.Namespace
                 Container.Add(item.Key, item.Value);
             }
 
+            // add date to httpcontext
+            HttpContext.Session.SetString("InstanceId", serverInstance.ID);
+            HttpContext.Session.SetString("Port", serverInstance.Port);
+            HttpContext.Session.SetString("IpAddress", serverInstance.IpAddress);
+
+
         }
 
         public List<ExerciseConfig> GetExercises()
