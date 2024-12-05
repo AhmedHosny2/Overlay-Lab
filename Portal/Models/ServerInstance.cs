@@ -97,6 +97,10 @@ namespace Portal.Models
 
                 foreach (var key in keys)
                 {
+                    if (key == "*")
+                    {
+                        return currentNode.ToString();
+                    }
                     currentNode = currentNode?[key];
 
                     if (currentNode == null)

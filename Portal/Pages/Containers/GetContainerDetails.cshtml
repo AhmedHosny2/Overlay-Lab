@@ -12,28 +12,22 @@
 
 @if (Model.Container != null)
 {
+
     <div style="margin: 20px 0; padding: 20px; border: 1px solid #ddd; border-radius: 5px;">
-        <h2>Container Information</h2>
-        <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
-            <thead>
-                <tr>
-                    <th style="text-align: left; padding: 8px; border-bottom: 1px solid #ddd;">Property</th>
-                    <th style="text-align: left; padding: 8px; border-bottom: 1px solid #ddd;">Value</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (PropertyInfo prop in typeof(Portal.Models.ServerInstance).GetProperties())
+    <h2>Container Information</h2>
+    <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+        <thead>
+            <tr>
+                <th style="text-align: left; padding: 8px; border-bottom: 1px solid #ddd;">Property</th>
+                <th style="text-align: left; padding: 8px; border-bottom: 1px solid #ddd;">Value</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var entry in Model.Container)
                 {
-                    @if(prop.GetValue (Model.Container) == null || prop.GetValue(Model.Container).ToString() == string.Empty )
-                    {
-                        
-                        continue;
-                    }
                     <tr>
-                        <td style="padding: 8px; border-bottom: 1px solid #ddd; vertical-align: top;">@prop.Name</td>
-                        <td style="padding: 8px; border-bottom: 1px solid #ddd;">
-                            @GetContainerDetailsModel.RenderProperty(prop.GetValue(Model.Container))
-                        </td>
+                        <td style="padding: 8px; border-bottom: 1px solid #ddd;">@entry.Key</td>
+                        <td style="padding: 8px; border-bottom: 1px solid #ddd;">@entry.Value</td>
                     </tr>
                 }
             </tbody>
@@ -43,7 +37,7 @@
 else
 {
     <div style="margin: 20px 0; padding: 20px; border: 1px solid #f44336; border-radius: 5px; background-color: #ffecec;">
-        <h2 style="color: #f44336;">Error</h2>
-        <p>Container details could not be found. Please check the container ID and try again.</p>
-    </div>
+    <h2 style="color: #f44336;">Error</h2>
+    <p>Container details could not be found. Please check the container ID and try again.</p>
+</div>
 }

@@ -19,7 +19,7 @@ namespace MyApp.Namespace
         private DockerClient _dockerClient;
         public string ExerciseName { get; set; }
         public List<string> DisplayFields { get; set; }
-        public ServerInstance Container { get; set; }
+        public IDictionary<string,string> Container { get; set; }
         private string _uid = string.Empty;
 
         public GetContainerDetailsModel(IDeploymentService deploymentService, IConfiguration configuration, ILogger<GetContainerDetailsModel> logger)
@@ -51,7 +51,7 @@ namespace MyApp.Namespace
                 DisplayFields = new List<string>();
             }
 
-            Container = _deploymentService.FetchContainerDetails(_dockerClient, exerciseName, DisplayFields, _uid).Result;
+            Container = _deploymentService.FetchContainerDetails(_dockerClient, exerciseName, DisplayFields, _uid).Result.map;
         }
 
         public List<ExerciseConfig> GetExercises()
