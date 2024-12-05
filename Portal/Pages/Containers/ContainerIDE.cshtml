@@ -1,10 +1,10 @@
 ﻿@page
-@model MyApp.Namespace.ContainerIDEModel
+@model Portal.Pages.Containers.ContainerIDEModel;
 @using Microsoft.AspNetCore.Antiforgery
 @inject IAntiforgery Antiforgery
 @{
-    Layout = null; // Or specify your layout page if you have one
-    // Generate and store the anti-forgery tokens
+    ViewData["Title"] = "Online IDE";
+
     var tokens = Antiforgery.GetAndStoreTokens(HttpContext);
 }
 <!DOCTYPE html>
@@ -20,13 +20,13 @@
     <!-- CodeMirror Themes -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/theme/dracula.min.css">
     <!-- CodeMirror Addon CSS -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/hint/show-hint.min.css">
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/hint/show-hint.min.css">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="~/css/ContainerIDEStyle.css">
 </head>
 
 <body>
-    <button class="deploy-btn" onclick="window.location.href='/'">Back</button>
 
     <h1>Multi-Language IDE</h1>
 
@@ -36,7 +36,7 @@
                 <label for="language-select"><strong>Language:</strong></label>
                 <select id="language-select">
                     <option value="javascript">JavaScript</option>
-                    <option value="python">Python</option>
+                    @* <option value="python">Python</option> *@
                 </select>
             </div>
             @* <div class="toolbar-item">
@@ -72,15 +72,15 @@
     </div>
 
     <!-- Loading Overlay -->
-    <div id="loading-overlay" class="loading-overlay">
+    @* <div id="loading-overlay" class="loading-overlay">
         Loading Python runtime...
-    </div>
+    </div> *@
 
     <!-- CodeMirror JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.js"></script>
     <!-- CodeMirror Modes -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/javascript/javascript.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/python/python.min.js"></script>
+    @* <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/python/python.min.js"></script> *@
     <!-- CodeMirror Addons -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/edit/closebrackets.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/edit/matchbrackets.min.js"></script>
