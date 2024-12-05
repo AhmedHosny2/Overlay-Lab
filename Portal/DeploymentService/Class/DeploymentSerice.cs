@@ -91,6 +91,12 @@ namespace Portal.DeploymentService.Class
                 if (container.Image.Equals(imageName, StringComparison.OrdinalIgnoreCase))
                 {
                     imageCreated = true;
+                    // check if container is paused
+                    if (container.State == "paused")
+                    {
+                        Console.WriteLine("Container is paused, start the container");
+                        await StartContainer(client, container.ID);
+                    }
                     // get users list 
                     string usersList = await RunCommandInContainer(client, new List<string> { "cat", "/users.txt" }, container.ID);
                     Console.WriteLine($"Users list: {usersList}");
@@ -289,6 +295,14 @@ namespace Portal.DeploymentService.Class
             Console.WriteLine("Running container...");
             try
             {
+                // check if container is paused
+                var container = await client.Containers.InspectContainerAsync(containerId);
+                if (container.State.Status == "paused")
+                {
+                    Console.WriteLine("Container is paused, start the container");
+                    await client.Containers.UnpauseContainerAsync(containerId);
+                }
+                else 
                 await client.Containers.StartContainerAsync(containerId, new ContainerStartParameters());
                 Console.WriteLine("Container started successfully");
             }
