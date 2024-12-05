@@ -387,26 +387,42 @@ namespace Portal.DeploymentService.Class
         }
 
 
-         public async Task RemoveUserOrStopContainer(DockerClient client, string ContainerId,string Uid){
-            Console.WriteLine("the current user id\n\n\n\n\n\n " + Uid);
+        public async Task RemoveUserOrPauseContainer(DockerClient client, string ContainerId, string Uid)
+        {
             // get users list in this container 
             var usersList = await RunCommandInContainer(client, new List<string> { "cat", "/users.txt" }, ContainerId);
             // remove user from the list
-            var updatedUsersList = usersList.Split(',').Where(x =>!x.Contains(Uid)).ToList();
+            // trim anyspace 
+
+            var updatedUsersList = usersList
+                .Split(',')
+                .Where(x => !x.Contains(Uid)) // Filter out items containing Uid
+                .Where(x => !string.IsNullOrWhiteSpace(x)) // Remove spaces or empty lines
+                .Select(x => x.Trim()) // Optional: Remove extra spaces around entries
+                .ToList();
+            // remove any spaces or empty lines 
+
+
             // update the list of users
             await RunCommandInContainer(client, new List<string> { $"echo \"{string.Join(",", updatedUsersList)}\" > users.txt" }, ContainerId);
-            Console.WriteLine("User removed from the list of users");
+            Console.WriteLine("User removed from container's  list of users");
             // print new list 
             Console.WriteLine($"Updated users list: {string.Join(",", updatedUsersList)}");
-            // if the list is empty stop the container
+            // if the list is empty pause the container
+            //TODO we can either stop the container to save computational resources or pause it to save the state of the container and better UX
             if (updatedUsersList.Count == 0)
             {
-                await client.Containers.StopContainerAsync(ContainerId, new ContainerStopParameters());
-                Console.WriteLine("Container stopped successfully");
+                await PauseContainer(client, ContainerId);
+                Console.WriteLine("Container paused successfully");
+            }
+            else
+            {
+                Console.WriteLine("User removed from the list of users, container still running");
             }
 
-         }
-        // get conteriner id from container name
+        }
+        // get container id from container name
+
         public async Task<string> GetContainerId(DockerClient client, string containerName)
         {
             IList<ContainerListResponse> containersList = await client.Containers.ListContainersAsync(new ContainersListParameters

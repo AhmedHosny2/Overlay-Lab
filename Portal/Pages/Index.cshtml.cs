@@ -183,7 +183,7 @@ public class IndexModel : PageModel
         _logger.LogInformation($"Stopping container: {instanceId}");
         try
         {
-            await _deploymentService.RemoveUserOrStopContainer(_dockerClient, instanceId, _uid);
+            await _deploymentService.RemoveUserOrPauseContainer(_dockerClient, instanceId, _uid);
             _logger.LogInformation($"Container stopped: {instanceId}");
             // Redirect to the same page to refresh
             Response.Redirect(Request.Path);
