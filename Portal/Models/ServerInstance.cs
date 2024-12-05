@@ -57,7 +57,7 @@ namespace Portal.Models
             this.Port = Allports;
             this.Image = GetValueFromJson(containerInspectResponse, "Config.Image");
             this.ID = GetValueFromJson(containerInspectResponse, "Id");
-            this.IpAddress = GetValueFromJson(containerInspectResponse, "NetworkSettings.IPAddress");
+            this.IpAddress ="http://localhost:"; //to be fixed after the deployment
 
             foreach (var field in displayFields)
             {
