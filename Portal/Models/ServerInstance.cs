@@ -47,6 +47,16 @@ namespace Portal.Models
 
             // this.Port = containerInspectResponse.Config.ExposedPorts.Keys.First();
             // this.Image = containerInspectResponse.Config.Image;
+            // get image port and id from jsgon 
+            var Allports = GetValueFromJson(containerInspectResponse, "Config.ExposedPorts.*");
+            Allports = Allports.Split('/')[0];
+            // remove " and {
+            Allports = Allports.Replace("\"", "");
+            Allports = Allports.Replace("{", "");
+            Allports = Allports.Replace("}", "");
+            this.Port = Allports;
+            this.Image = GetValueFromJson(containerInspectResponse, "Config.Image");
+            this.ID = GetValueFromJson(containerInspectResponse, "Id");
 
 
             foreach (var field in displayFields)

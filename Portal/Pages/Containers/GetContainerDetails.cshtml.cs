@@ -19,7 +19,7 @@ namespace MyApp.Namespace
         private DockerClient _dockerClient;
         public string ExerciseName { get; set; }
         public List<string> DisplayFields { get; set; }
-        public IDictionary<string,string> Container { get; set; }
+        public IDictionary<string, string> Container { get; set; }
         private string _uid = string.Empty;
 
         public GetContainerDetailsModel(IDeploymentService deploymentService, IConfiguration configuration, ILogger<GetContainerDetailsModel> logger)
@@ -50,8 +50,20 @@ namespace MyApp.Namespace
                 _logger.LogWarning("Exercise with name {0} not found.", exerciseName);
                 DisplayFields = new List<string>();
             }
+            ServerInstance serverInstance = _deploymentService.FetchContainerDetails(_dockerClient, exerciseName, DisplayFields, _uid).Result;
 
-            Container = _deploymentService.FetchContainerDetails(_dockerClient, exerciseName, DisplayFields, _uid).Result.map;
+            Container = new Dictionary<string, string>
+            {
+                { "ID", serverInstance.ID },
+                { "Image", serverInstance.Image },
+                { "Port", serverInstance.Port }
+            };
+            // add the map 
+            foreach (var item in serverInstance.map)
+            {
+                Container.Add(item.Key, item.Value);
+            }
+
         }
 
         public List<ExerciseConfig> GetExercises()
