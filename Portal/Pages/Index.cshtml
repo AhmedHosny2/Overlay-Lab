@@ -18,70 +18,57 @@
 
 <body>
     <div class="container mt-5">
-        <div class="text-center mb-4">
-            <h1 class="display-4">Welcome @Model.UserName</h1>
-       @* display ex details   *@
+        <div class="text-center mb-5">
+            <h1 class="display-25">Welcome @Model.UserName</h1>
+        </div>
 
-            <div class="exercise-list-container">
-                <h1 class="exercise-list-title">Exercise List</h1>
-                <table class="exercise-table">
-
-                    <thead>
-                        <tr>
-                            <th>Title</th>
-                            <th>Description</th>
-                            <th>Difficulty</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var exercise in Model.Exercises)
-                        {
-                            <tr>
-                                <td>@exercise.ExerciseTile</td>
-                                <td>@exercise.ExerciseDescription</td>
-                                <td>@exercise.ExerciseDifficulty</td>
-                                <td class="exercise-actions">
+        <div class="exercise-list-container">
+            <h1 class="exercise-list-title">Exercise List</h1>
+            <div class="row">
+                @foreach (var exercise in Model.Exercises)
+                {
+                    <div class="col-md-4 mb-4">
+                        <div class="card exercise-card h-100" id="exercise-@exercise.ExerciseName">
+                            <div class="card-body d-flex flex-column">
+                                <h5 class="card-title">@exercise.ExerciseTile</h5>
+                                <p class="card-text">@exercise.ExerciseDescription</p>
+                                <p class="card-text"><small class="text-muted">Difficulty: @exercise.ExerciseDifficulty</small></p>
+                                <div class="mt-auto pt-3 d-flex justify-content-center exercise-actions">
                                     @if (Model.usersContainer.Contains(exercise.DockerImage))
                                     {
-                                        <!-- Display Resume and Stop buttons -->
-                                        <form method="post" asp-page-handler="DeployInstance">
+                                        <form method="post" asp-page-handler="DeployInstance" class="mr-2" id="resume-form-@exercise.ExerciseName">
                                             <input type="hidden" name="ExerciseName" value="@exercise.ExerciseName" />
-                                            <button class="btn btn-outline-primary" type="submit">Resume</button>
+                                            <button class="btn btn-outline-primary" type="submit" id="resume-btn-@exercise.ExerciseName">Resume</button>
                                         </form>
-                                        <form method="post" asp-page-handler="StopInstance">
+                                        <form method="post" asp-page-handler="StopInstance" id="stop-form-@exercise.ExerciseName">
                                             <input type="hidden" name="ExerciseName" value="@exercise.ExerciseName" />
-                                            <button class="btn btn-outline-danger" type="submit">Stop</button>
+                                            <button class="btn btn-outline-danger" type="submit" id="stop-btn-@exercise.ExerciseName">Stop</button>
                                         </form>
                                     }
                                     else
                                     {
-                                        <!-- Display Start button -->
-                                        <form method="post" asp-page-handler="DeployInstance">
+                                        <form method="post" asp-page-handler="DeployInstance" id="start-form-@exercise.ExerciseName">
                                             <input type="hidden" name="ExerciseName" value="@exercise.ExerciseName" />
-                                            <button class="btn btn-outline-success" type="submit">Start</button>
+                                            <button class="btn btn-outline-success" type="submit" id="start-btn-@exercise.ExerciseName">Start</button>
                                         </form>
                                     }
-                                </td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
             </div>
+        </div>
 
-            <!-- JavaScript Dependencies: move any inline JavaScript to a separate file -->
-            <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
-                integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj"
-                crossorigin="anonymous"></script>
-            <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"
-                integrity="sha384-pzjw8f+ua7Kw1TIqE7anJf6b3zH5pbeVxknzYlbR5STIbYQb6P6afkFeJQuo5eNm"
-                crossorigin="anonymous"></script>
-            <script src="~/js/site.js"></script> <!-- Custom JavaScript file -->
+    </div>
 
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
+            integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj"
+            crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-pzjw8f+ua7Kw1TIqE7anJf6b3zH5pbeVxknzYlbR5STIbYQb6P6afkFeJQuo5eNm"
+            crossorigin="anonymous"></script>
+    <script src="~/js/site.js"></script>
 </body>
-@*  add inline js do alert  *@
-<script>
-    @* alert("Take Care inline js is not good practice"); *@
-</script>
-
 </html>

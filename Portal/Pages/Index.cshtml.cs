@@ -69,7 +69,7 @@ public class IndexModel : PageModel
         _uid = User.FindFirst("uid")?.Value ?? string.Empty;
         usersContainer = await _deploymentService.ListUsersContainer(_dockerClient, _uid);
 
-        UserName = User.FindFirst("name")?.Value.Split(",")[0] ?? string.Empty;
+        UserName = User.FindFirst("name")?.Value.Split(",")[0].Split(" ")[0] ?? string.Empty;
         // get all exercise configurations
         Exercises = GetExercises();
         // for testing only 
