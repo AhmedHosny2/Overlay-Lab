@@ -57,7 +57,7 @@ namespace Portal.Models
             this.Port = Allports;
             this.Image = GetValueFromJson(containerInspectResponse, "Config.Image");
             this.ID = GetValueFromJson(containerInspectResponse, "Id");
-
+            this.IpAddress = GetValueFromJson(containerInspectResponse, "NetworkSettings.IPAddress");
 
             foreach (var field in displayFields)
             {
