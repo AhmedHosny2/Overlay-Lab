@@ -5,43 +5,64 @@
 @using Newtonsoft.Json
 
 @{
-    ViewData["Title"] = "Container Details";
+    ViewData["Title"] = "Server Details";
 }
 
-<h1>Container Details</h1>
-
-@if (Model.Container != null)
-{
-
-    <div style="margin: 20px 0; padding: 20px; border: 1px solid #ddd; border-radius: 5px;">
-    <h2>Container Information</h2>
-    <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
-        <thead>
-            <tr>
-                <th style="text-align: left; padding: 8px; border-bottom: 1px solid #ddd;">Property</th>
-                <th style="text-align: left; padding: 8px; border-bottom: 1px solid #ddd;">Value</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var entry in Model.Container)
-                {
-                    <tr>
-                        <td style="padding: 8px; border-bottom: 1px solid #ddd;">@entry.Key</td>
-                        <td style="padding: 8px; border-bottom: 1px solid #ddd;">@entry.Value</td>
-                    </tr>
-                }
-            </tbody>
-        </table>
+<div style="font-family: 'Roboto', sans-serif; max-width: 900px; margin: 0 auto; padding: 30px;">
+    <!-- Page Header -->
+    <div style="text-align: center; margin-bottom: 30px;">
+        <h1 style="font-size: 2.8em; color: #2F4F4F; margin-bottom: 10px;">🔍 Explore Your Server Details</h1>
+        <p style="font-size: 1.2em; color: #6A5ACD;">The information you need to complete your exercise is right here!</p>
     </div>
-    @* add button redircet to the IDE continer page with title don't have ide try the online one *@
-  <button class="btn btn-outline-primary" onclick="window.location.href='/Containers/ContainerIDE'">Try the Online IDE</button>
 
+    @if (Model.Container != null)
+    {
+        <!-- Server Information Section -->
+        <div style="background: linear-gradient(to right, #e6f7ff, #f6f6ff); border-radius: 15px; padding: 20px; box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);">
+            <h2 style="font-size: 1.8em; color: #333; margin-bottom: 15px;">🚀 Your Server is Ready!</h2>
+            <p style="font-size: 1em; color: #555; margin-bottom: 20px; line-height: 1.6;">
+                Below are the details of your server. Use these values in your code or API calls to interact with it effectively.
+                Don’t worry if this looks new – we’ve made it easy for you!
+            </p>
+            
+            <table style="width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 1.1em; color: #333;">
+                <thead>
+                    <tr style="background-color: #6A5ACD; color: white; text-align: left;">
+                        <th style="padding: 15px; border-radius: 8px 0 0 8px;">Property</th>
+                        <th style="padding: 15px; border-radius: 0 8px 8px 0;">Value</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var entry in Model.Container)
+                    {
+                        <tr style="background-color: #f9f9f9; border-bottom: 1px solid #ddd;">
+                            <td style="padding: 12px; font-weight: bold; color: #2F4F4F;">@entry.Key</td>
+                            <td style="padding: 12px; color: #4B0082; word-break: break-word;">@entry.Value</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
 
-}
-else
-{
-    <div style="margin: 20px 0; padding: 20px; border: 1px solid #f44336; border-radius: 5px; background-color: #ffecec;">
-    <h2 style="color: #f44336;">Error</h2>
-    <p>Container details could not be found. Please check the container ID and try again.</p>
+            <div style="text-align: center; margin-top: 30px;">
+                <button class="btn btn-primary" 
+                        style="background-color: #6A5ACD; border: none; padding: 15px 25px; font-size: 1.1em; color: white; border-radius: 8px; cursor: pointer; transition: all 0.3s ease;"
+                        onmouseover="this.style.backgroundColor='#483D8B';" 
+                        onmouseout="this.style.backgroundColor='#6A5ACD';"
+                        onclick="window.location.href='/Containers/ContainerIDE'">
+                    🌐 Don't Have an IDE? Try the Online One!
+                </button>
+            </div>
+        </div>
+    }
+    else
+    {
+        <!-- Error Section -->
+        <div style="background: linear-gradient(to right, #ffcccc, #ffe6e6); border-radius: 15px; padding: 20px; box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);">
+            <h2 style="font-size: 1.8em; color: #D8000C; margin-bottom: 15px;">⚠️ Server Details Not Found</h2>
+            <p style="font-size: 1em; color: #555; line-height: 1.6;">
+                Oops! We couldn't fetch your server details. Please ensure the container is active or restart the exercise. 
+                If the issue persists, contact support.
+            </p>
+        </div>
+    }
 </div>
-}

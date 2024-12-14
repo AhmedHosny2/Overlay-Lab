@@ -1,22 +1,20 @@
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.Identity.Web;
 using Microsoft.Identity.Web.UI;
 using Portal.DeploymentService.Class;
 using Portal.DeploymentService.Interface;
-
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container
 builder.Services.AddRazorPages()
     .AddMicrosoftIdentityUI();
+
 builder.Services.AddSession();
 builder.Services.AddDistributedMemoryCache();
 
 // Dependency injection for DeploymentService
 builder.Services.AddSingleton<IDeploymentService, DeploymentService>();
-
-// Load configuration for main appsettings
-// builder.Configuration.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
 
 // Dynamically load all exercise configuration files
 var exerciseConfigs = Directory.GetFiles("ExConfiguration", "*.json");
@@ -28,7 +26,6 @@ foreach (var filePath in exerciseConfigs)
 // Configure strongly-typed configuration for ExerciseConfig
 builder.Services.Configure<ExerciseConfig>(options =>
 {
-    // Ensure correct binding if "ExerciseConfig" is a subsection
     builder.Configuration.GetSection("ExerciseConfig").Bind(options);
 });
 
@@ -37,10 +34,33 @@ builder.Services.AddMicrosoftIdentityWebAppAuthentication(builder.Configuration,
     .EnableTokenAcquisitionToCallDownstreamApi(new string[] { "user.read" })
     .AddInMemoryTokenCaches();
 
+// Configure Cookie Policy
+builder.Services.Configure<CookiePolicyOptions>(options =>
+{
+    options.MinimumSameSitePolicy = SameSiteMode.None;
+    options.Secure = CookieSecurePolicy.Always;
+    options.HttpOnly = Microsoft.AspNetCore.CookiePolicy.HttpOnlyPolicy.Always;
+});
+
+// Configure OpenID Connect Options
+builder.Services.Configure<OpenIdConnectOptions>(OpenIdConnectDefaults.AuthenticationScheme, options =>
+{
+    options.CorrelationCookie.SameSite = SameSiteMode.None;
+    options.CorrelationCookie.SecurePolicy = CookieSecurePolicy.Always;
+});
+
 var app = builder.Build();
 
-// Middleware to enforce Content Security Policy (CSP)
-// Uncomment and configure as needed
+// Middleware to handle forwarded headers (if behind a proxy)
+app.UseForwardedHeaders(new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+});
+
+// Enable session middleware
+app.UseSession();
+
+// Enforce Content Security Policy (CSP) if needed
 // app.Use(async (context, next) =>
 // {
 //     context.Response.Headers.Append("Content-Security-Policy", 
@@ -48,9 +68,6 @@ var app = builder.Build();
 //         "script-src 'self' https://stackpath.bootstrapcdn.com https://code.jquery.com https://cdn.jsdelivr.net;");
 //     await next();
 // });
-
-// Enable session middleware
-app.UseSession();
 
 // Configure the HTTP request pipeline
 if (!app.Environment.IsDevelopment())
@@ -64,12 +81,13 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
+// Apply Cookie Policy before Authentication
+app.UseCookiePolicy();
+
 app.UseAuthentication();
 app.UseAuthorization();
 
 // Map static assets and Razor Pages
-app.MapStaticAssets();
-app.MapRazorPages()
-   .WithStaticAssets();
+app.MapRazorPages();
 
 app.Run();
