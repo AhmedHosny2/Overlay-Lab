@@ -37,7 +37,7 @@ namespace Portal.Models
         {
         }
 
-        public ServerInstance(string containerInspectResponse, List<string> displayFields)
+        public ServerInstance(string containerInspectResponse, List<string> displayFields, string ip )
         {
             if (containerInspectResponse == null || displayFields == null)
                 return;
@@ -57,8 +57,7 @@ namespace Portal.Models
             this.Port = Allports;
             this.Image = GetValueFromJson(containerInspectResponse, "Config.Image");
             this.ID = GetValueFromJson(containerInspectResponse, "Id");
-            this.IpAddress ="http://localhost:"; //to be fixed after the deployment
-
+            this.IpAddress = ip;
             foreach (var field in displayFields)
             {
                 Console.WriteLine("Field: " + field);
@@ -80,7 +79,7 @@ namespace Portal.Models
                 // }
                 map[key] = value;
 
-
+    
 
             }
             // log map

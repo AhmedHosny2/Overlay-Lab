@@ -151,8 +151,11 @@ public class IndexModel : PageModel
         _uid = User.FindFirst("uid")?.Value ?? string.Empty;
 
         _logger.LogInformation($"Stopping container: {exerciseName}");
+        // get ip 
+        var ip = HttpContext.Request.Host.Host;
+        _logger.LogInformation($"IP Address: {ip}");
         // get container id
-        var serverDetails = await _deploymentService.FetchContainerDetails(_dockerClient, exerciseName, new List<string> { "ID" }, _uid);
+        var serverDetails = await _deploymentService.FetchContainerDetails(_dockerClient, exerciseName, new List<string> { "ID" }, _uid,ip);
         var instanceId = serverDetails.ID;
         _logger.LogInformation($"Stopping container: {instanceId}");
         try

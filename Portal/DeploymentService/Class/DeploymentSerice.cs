@@ -258,7 +258,7 @@ namespace Portal.DeploymentService.Class
 
         // Get container details
         // todo only get needed details donext
-        public async Task<ServerInstance> FetchContainerDetails(DockerClient client, string exerciseName, List<string> DisplayFields, string Uid)
+        public async Task<ServerInstance> FetchContainerDetails(DockerClient client, string exerciseName, List<string> DisplayFields, string Uid,string ip)
         {
             Console.WriteLine("Getting container details...");
             try
@@ -279,7 +279,7 @@ namespace Portal.DeploymentService.Class
                     Console.WriteLine("User not in the list");
                     throw new Exception("User not in the list");
                 }
-                ServerInstance container = new ServerInstance(containerDetailsJson, DisplayFields);
+                ServerInstance container = new ServerInstance(containerDetailsJson, DisplayFields,ip);
 
                 // Additional processing can be done here if needed
 

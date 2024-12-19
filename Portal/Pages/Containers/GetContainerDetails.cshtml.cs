@@ -50,13 +50,21 @@ namespace MyApp.Namespace
                 _logger.LogWarning("Exercise with name {0} not found.", exerciseName);
                 DisplayFields = new List<string>();
             }
-            ServerInstance serverInstance = _deploymentService.FetchContainerDetails(_dockerClient, exerciseName, DisplayFields, _uid).Result;
+            // get ip from url the url will be ip:port 
+            string ip = HttpContext.Request.Host.Host;
+            _logger.LogInformation("ip: {0}", ip);
+
+
+            ServerInstance serverInstance = _deploymentService.FetchContainerDetails(_dockerClient, exerciseName, DisplayFields, _uid,ip).Result;
 
             Container = new Dictionary<string, string>
             {
                 { "ID", serverInstance.ID },
                 { "Image", serverInstance.Image },
-                { "Port", serverInstance.Port }
+                { "Port", serverInstance.Port },
+                { "IpAddress", serverInstance.IpAddress },
+              
+
             };
             // add the map 
             foreach (var item in serverInstance.map)
