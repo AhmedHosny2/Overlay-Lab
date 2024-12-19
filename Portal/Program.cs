@@ -30,9 +30,9 @@ builder.Services.Configure<ExerciseConfig>(options =>
 });
 
 // Configure Microsoft Identity authentication
-builder.Services.AddMicrosoftIdentityWebAppAuthentication(builder.Configuration, "AzureAd")
-    .EnableTokenAcquisitionToCallDownstreamApi(new string[] { "user.read" })
-    .AddInMemoryTokenCaches();
+// builder.Services.AddMicrosoftIdentityWebAppAuthentication(builder.Configuration, "AzureAd")
+//     .EnableTokenAcquisitionToCallDownstreamApi(new string[] { "user.read" })
+//     .AddInMemoryTokenCaches();
 
 // Configure Cookie Policy
 builder.Services.Configure<CookiePolicyOptions>(options =>
