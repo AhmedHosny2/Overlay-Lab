@@ -12,6 +12,8 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace Portal.Pages;
 // [Authorize]
+    [IgnoreAntiforgeryToken]
+
 public class IndexModel : PageModel
 {
     private readonly IDeploymentService _deploymentService;
@@ -87,6 +89,8 @@ public class IndexModel : PageModel
 
         try
         {
+            _logger.LogInformation("Deploying container for exercise: {ExerciseName}", ExerciseName);
+
             await DeployContainerAsync(ExerciseName);
             return RedirectToPage("Containers/GetContainerDetails", new { exerciseName = ExerciseName });
 
@@ -129,6 +133,7 @@ public class IndexModel : PageModel
                 throw new Exception("Unable to store container ID in session.");
             }
             // return 
+            _logger.LogInformation("Container deployed successfully with ID: {createdContainerId}\n\n\n\n\n\n\n", createdContainerId);
             return Page();
         }
         catch (Exception e)

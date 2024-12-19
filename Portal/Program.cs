@@ -43,11 +43,11 @@ builder.Services.Configure<CookiePolicyOptions>(options =>
 });
 
 // Configure OpenID Connect Options
-builder.Services.Configure<OpenIdConnectOptions>(OpenIdConnectDefaults.AuthenticationScheme, options =>
-{
-    options.CorrelationCookie.SameSite = SameSiteMode.None;
-    options.CorrelationCookie.SecurePolicy = CookieSecurePolicy.Always;
-});
+// builder.Services.Configure<OpenIdConnectOptions>(OpenIdConnectDefaults.AuthenticationScheme, options =>
+// {
+//     options.CorrelationCookie.SameSite = SameSiteMode.None;
+//     options.CorrelationCookie.SecurePolicy = CookieSecurePolicy.Always;
+// });
 
 var app = builder.Build();
 
@@ -84,8 +84,8 @@ app.UseRouting();
 // Apply Cookie Policy before Authentication
 app.UseCookiePolicy();
 
-app.UseAuthentication();
-app.UseAuthorization();
+// app.UseAuthentication();
+// app.UseAuthorization();
 
 // Map static assets and Razor Pages
 app.MapRazorPages();
