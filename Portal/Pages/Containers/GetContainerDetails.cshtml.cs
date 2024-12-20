@@ -76,7 +76,9 @@ namespace MyApp.Namespace
             HttpContext.Session.SetString("InstanceId", serverInstance.ID);
             HttpContext.Session.SetString("Port", serverInstance.Port);
             HttpContext.Session.SetString("IpAddress", serverInstance.IpAddress);
-
+                // get ip from http context and log it 
+                var testIp = HttpContext.Session.GetString("IpAddress");
+                _logger.LogInformation("ip from session: {0}\n\n\n\n\n here yaya", testIp);
 
         }
 

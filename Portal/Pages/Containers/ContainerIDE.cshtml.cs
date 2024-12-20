@@ -21,6 +21,9 @@ namespace Portal.Pages.Containers
 
         public void OnGet()
         {
+            var testip =  HttpContext.Session.GetString("IpAddress");
+            // log it 
+            Console.WriteLine("ip address is {0} yaya2", testip);
             IPAddress = HttpContext.Session.GetString("IpAddress") ?? "XX.XX.XX.XX";
             Port = HttpContext.Session.GetString("Port") ?? "XXXX";
             InstanceId = HttpContext.Session.GetString("InstanceId") ?? "default-instance";

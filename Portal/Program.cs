@@ -6,11 +6,12 @@ using Portal.DeploymentService.Class;
 using Portal.DeploymentService.Interface;
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddSession();
+
 // Add services to the container
 builder.Services.AddRazorPages()
     .AddMicrosoftIdentityUI();
 
-builder.Services.AddSession();
 builder.Services.AddDistributedMemoryCache();
 
 // Dependency injection for DeploymentService
