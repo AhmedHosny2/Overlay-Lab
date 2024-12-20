@@ -228,9 +228,15 @@ namespace Portal.DeploymentService.Class
             Console.WriteLine($"UID: {Uid}");
             try
             {
+                // List only running containers
                 IList<ContainerListResponse> containers = await client.Containers.ListContainersAsync(new ContainersListParameters
                 {
+                    Filters = new Dictionary<string, IDictionary<string, bool>>
+            {
+                { "status", new Dictionary<string, bool> { { "running", true } } }
+            }
                 });
+
 
                 foreach (var container in containers)
                 {
@@ -258,7 +264,7 @@ namespace Portal.DeploymentService.Class
 
         // Get container details
         // todo only get needed details donext
-        public async Task<ServerInstance> FetchContainerDetails(DockerClient client, string exerciseName, List<string> DisplayFields, string Uid,string ip)
+        public async Task<ServerInstance> FetchContainerDetails(DockerClient client, string exerciseName, List<string> DisplayFields, string Uid, string ip)
         {
             Console.WriteLine("Getting container details...");
             try
@@ -267,7 +273,7 @@ namespace Portal.DeploymentService.Class
 
                 var containerDetails = await client.Containers.InspectContainerAsync(containerId);
                 // convert container detials to json format
-                    string containerDetailsJson = JsonConvert.SerializeObject(containerDetails, Formatting.Indented);
+                string containerDetailsJson = JsonConvert.SerializeObject(containerDetails, Formatting.Indented);
                 // Console.WriteLine($"Container details: {containerDetailsJson}");
                 string usersList = await RunCommandInContainer(client, new List<string> { "cat", "/users.txt" }, containerDetails.ID);
                 if (usersList != null && usersList.Contains(Uid))
@@ -279,7 +285,7 @@ namespace Portal.DeploymentService.Class
                     Console.WriteLine("User not in the list");
                     throw new Exception("User not in the list");
                 }
-                ServerInstance container = new ServerInstance(containerDetailsJson, DisplayFields,ip);
+                ServerInstance container = new ServerInstance(containerDetailsJson, DisplayFields, ip);
 
                 // Additional processing can be done here if needed
 
@@ -306,8 +312,8 @@ namespace Portal.DeploymentService.Class
                     Console.WriteLine("Container is paused, start the container");
                     await client.Containers.UnpauseContainerAsync(containerId);
                 }
-                else 
-                await client.Containers.StartContainerAsync(containerId, new ContainerStartParameters());
+                else
+                    await client.Containers.StartContainerAsync(containerId, new ContainerStartParameters());
                 Console.WriteLine("Container started successfully");
             }
             catch (Exception e)
