@@ -4,6 +4,7 @@ using System.Linq;
 using Newtonsoft.Json;
 using Docker.DotNet.Models;
 using System.Text.Json.Nodes;
+using System.Net.NetworkInformation;
 
 namespace Portal.Models
 {
@@ -57,7 +58,7 @@ namespace Portal.Models
             this.Port = Allports;
             this.Image = GetValueFromJson(containerInspectResponse, "Config.Image");
             this.ID = GetValueFromJson(containerInspectResponse, "Id");
-            this.IpAddress = ip;
+            this.IpAddress = GetVmIpAddress();
             foreach (var field in displayFields)
             {
                 Console.WriteLine("Field: " + field);
@@ -92,6 +93,25 @@ namespace Portal.Models
 
         }
 
+        public static string GetVmIpAddress()
+    {
+        foreach (var networkInterface in NetworkInterface.GetAllNetworkInterfaces())
+        
+        {
+            if (networkInterface.OperationalStatus == OperationalStatus.Up)
+            {
+                foreach (var ipAddress in networkInterface.GetIPProperties().UnicastAddresses)
+                {
+                    if (ipAddress.Address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork &&
+                        ipAddress.Address.ToString().StartsWith("10."))
+                    {
+                        return ipAddress.Address.ToString();
+                    }
+                }
+            }
+        }
+        return "No VM IP starting with 10. found.";
+    }
         public static string GetValueFromJson(string json, string keyPath)
         {
             try
