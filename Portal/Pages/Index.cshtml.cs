@@ -18,6 +18,8 @@ public class IndexModel : PageModel
 {
     private readonly IDeploymentService _deploymentService;
     private DockerClient _dockerClient;
+        public string UserIp { get; private set; }
+
     private readonly ILogger<IndexModel> _logger;
     public string UserName { get; set; } = string.Empty;
     private string _uid = string.Empty;
@@ -68,6 +70,9 @@ public class IndexModel : PageModel
     // list containers
     public async Task OnGetAsync()
     {
+        UserIp = HttpContext.Connection.RemoteIpAddress?.ToString();
+            _logger.LogInformation($"User IP:/n/n/n/n/n/n\n\n\nn\n\nn\n\n\nn\n\n lol  {UserIp}");
+
         _uid = User.FindFirst("uid")?.Value ?? string.Empty;
         usersContainer = await _deploymentService.ListUsersContainer(_dockerClient, _uid);
 
