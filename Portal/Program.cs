@@ -61,6 +61,12 @@ app.UseForwardedHeaders(new ForwardedHeadersOptions
 // Enable session middleware
 app.UseSession();
 
+app.UseForwardedHeaders(new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+});
+
+
 // Enforce Content Security Policy (CSP) if needed
 // app.Use(async (context, next) =>
 // {

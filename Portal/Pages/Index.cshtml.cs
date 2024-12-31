@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Docker.DotNet;
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 
 
 namespace Portal.Pages;
@@ -72,6 +73,15 @@ public class IndexModel : PageModel
     {
         UserIp = HttpContext.Connection.RemoteIpAddress?.ToString();
             _logger.LogInformation($"User IP:/n/n/n/n/n/n\n\n\nn\n\nn\n\n\nn\n\n lol  {UserIp}");
+
+string userIp = HttpContext.Request.Headers["X-Forwarded-For"].FirstOrDefault();
+
+    if (string.IsNullOrEmpty(userIp))
+    {
+        userIp = HttpContext.Connection.RemoteIpAddress?.ToString();
+    } 
+    _logger.LogInformation($"User IP:/n/n/n/n/n/n\n\n\nn\n\nn\n\n\nn\n\n lol222 \n  {userIp}");
+
 
         _uid = User.FindFirst("uid")?.Value ?? string.Empty;
         usersContainer = await _deploymentService.ListUsersContainer(_dockerClient, _uid);

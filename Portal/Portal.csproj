@@ -11,6 +11,7 @@
   <ItemGroup>
     <PackageReference Include="Docker.DotNet" Version="3.125.15" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.AzureAD.UI" Version="6.0.36" />
+    <PackageReference Include="Microsoft.AspNetCore.HttpOverrides" Version="2.2.0" />
     <PackageReference Include="Microsoft.Identity.Web" Version="3.4.0" />
     <PackageReference Include="Microsoft.Identity.Web.UI" Version="3.4.0" />
   </ItemGroup>
