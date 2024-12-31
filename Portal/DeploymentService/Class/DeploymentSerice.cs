@@ -60,7 +60,7 @@ namespace Portal.DeploymentService.Class
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine($"Error: {e.Message}");
+                    Console.WriteLine($"Error1 : {e.Message}");
                 }
             }
             else
@@ -257,7 +257,7 @@ namespace Portal.DeploymentService.Class
             }
             catch (Exception e)
             {
-                Console.WriteLine($"Error: {e.Message}");
+                Console.WriteLine($"Error2 : {e.Message}");
                 return new List<string>();
             }
         }
@@ -294,7 +294,7 @@ namespace Portal.DeploymentService.Class
             }
             catch (Exception e)
             {
-                Console.WriteLine($"Error: {e.Message}");
+                Console.WriteLine($"Error3 : {e.Message}");
                 return null;
             }
         }
@@ -318,7 +318,7 @@ namespace Portal.DeploymentService.Class
             }
             catch (Exception e)
             {
-                Console.WriteLine($"Error: {e.Message}");
+                Console.WriteLine($"Error4 : {e.Message}");
             }
         }
 
@@ -369,7 +369,7 @@ namespace Portal.DeploymentService.Class
             }
             catch (Exception e)
             {
-                Console.WriteLine($"Error: {e.Message}");
+                Console.WriteLine($"Error5 : {e.Message}");
                 return e.Message;
             }
         }
@@ -386,7 +386,7 @@ namespace Portal.DeploymentService.Class
             }
             catch (Exception e)
             {
-                Console.WriteLine($"Error: {e.Message}");
+                Console.WriteLine($"Error6 : {e.Message}");
             }
         }
 

@@ -75,17 +75,20 @@ public class IndexModel : PageModel
             _logger.LogInformation($"User IP:/n/n/n/n/n/n\n\n\nn\n\nn\n\n\nn\n\n lol  {UserIp}");
 
 
-var forwardedFor = HttpContext.Request.Headers["X-Forwarded-For"].FirstOrDefault();
-if (!string.IsNullOrEmpty(forwardedFor))
-{
-    UserIp = forwardedFor.Split(',').First(); // If multiple IPs, take the first one
-}
-else
-{
-    UserIp = HttpContext.Connection.RemoteIpAddress?.ToString(); // Fallback to RemoteIpAddress
-}
-
-_logger.LogInformation($"Sender IP Address: {UserIp}");
+var forwardedFor = HttpContext.Request.Headers["X-Forwarded-For"];
+// if (!string.IsNullOrEmpty(forwardedFor))
+// {
+//     UserIp = forwardedFor.Split(',').First(); // If multiple IPs, take the first one
+// }
+// else
+// {
+//     UserIp = HttpContext.Connection.RemoteIpAddress?.ToString(); // Fallback to RemoteIpAddress
+// }
+// print evrything inside forwardedFor 
+    foreach (var item in forwardedFor)
+    {
+        _logger.LogInformation($"ForwardedFor: \n\n lol : :  {item}");
+    }
 
 
 
