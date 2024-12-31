@@ -63,9 +63,11 @@ app.UseSession();
 
 app.UseForwardedHeaders(new ForwardedHeadersOptions
 {
-    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto,
+    ForwardLimit = 1, // Optional: Limits the number of forwarders to trust
+    KnownNetworks = { }, // Optional: Add known proxy IPs here if required
+    KnownProxies = { } // Optional: Add specific proxy IPs here
 });
-
 
 // Enforce Content Security Policy (CSP) if needed
 // app.Use(async (context, next) =>
