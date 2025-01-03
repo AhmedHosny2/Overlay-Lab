@@ -10,6 +10,7 @@ using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Primitives;
+using Microsoft.AspNetCore.Http;
 
 
 namespace Portal.Pages;
@@ -69,66 +70,30 @@ public class IndexModel : PageModel
         }
         return Exercises;
     }
+    public string UserIpAddress { get; private set; }
+
     // list containers
     public async Task OnGetAsync()
     {
 
 
-        // Log all headers
-        _logger.LogInformation("=== HTTP Request Headers ===");
-        foreach (var header in HttpContext.Request.Headers)
+ // Retrieve the original user's IP address
+        if (HttpContext.Request.Headers.ContainsKey("X-Forwarded-For"))
         {
-            _logger.LogInformation($"{header.Key}: {header.Value}");
-        }
-
-        // Log all details about X-Forwarded-For
-        var forwardedFor = HttpContext.Request.Headers["X-Forwarded-For"];
-        if (!StringValues.IsNullOrEmpty(forwardedFor))
-        {
-            foreach (var item in forwardedFor)
-            {
-                _logger.LogInformation($"ForwardedFor Item: {item}");
-            }
+            // Extract the first IP from the X-Forwarded-For header
+            UserIpAddress = HttpContext.Request.Headers["X-Forwarded-For"].ToString().Split(',')[0];
+            _logger.LogInformation("Original user IP retrieved from X-Forwarded-For: {UserIpAddress}", UserIpAddress);
         }
         else
         {
-            _logger.LogInformation("X-Forwarded-For header is not present.");
+            // Fallback to remote IP address if X-Forwarded-For is not set
+            UserIpAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+            _logger.LogInformation("Original user IP retrieved from RemoteIpAddress: {UserIpAddress}", UserIpAddress);
         }
 
-        // Log connection details
-        _logger.LogInformation("=== Connection Details ===");
-        _logger.LogInformation($"Remote IP Address: {HttpContext.Connection.RemoteIpAddress}");
-        _logger.LogInformation($"Local IP Address: {HttpContext.Connection.LocalIpAddress}");
-        _logger.LogInformation($"Remote Port: {HttpContext.Connection.RemotePort}");
-        _logger.LogInformation($"Local Port: {HttpContext.Connection.LocalPort}");
+        // Log a general message with the IP
+        _logger.LogInformation("User IP Address logged: {UserIpAddress}", UserIpAddress);
 
-        // Log protocol and method
-        _logger.LogInformation("=== Protocol and Method ===");
-        _logger.LogInformation($"Protocol: {HttpContext.Request.Protocol}");
-        _logger.LogInformation($"Method: {HttpContext.Request.Method}");
-        _logger.LogInformation($"Path: {HttpContext.Request.Path}");
-        _logger.LogInformation($"Query String: {HttpContext.Request.QueryString}");
-
-        // Log the body content (if applicable)
-        if (HttpContext.Request.Body.CanSeek)
-        {
-            HttpContext.Request.Body.Seek(0, SeekOrigin.Begin);
-            using (StreamReader reader = new StreamReader(HttpContext.Request.Body))
-            {
-                string bodyContent = await reader.ReadToEndAsync();
-                _logger.LogInformation("=== HTTP Request Body ===");
-                _logger.LogInformation(bodyContent);
-            }
-            HttpContext.Request.Body.Seek(0, SeekOrigin.Begin); // Reset the stream for further use
-        }
-        else
-        {
-            _logger.LogInformation("HTTP Request Body is not readable or is empty.");
-        }
-
-        // Your existing code
-        UserIp = HttpContext.Connection.RemoteIpAddress?.ToString();
-        _logger.LogInformation($"User IP: {UserIp}");
 
 
 
