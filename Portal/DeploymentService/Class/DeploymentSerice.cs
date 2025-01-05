@@ -116,7 +116,7 @@ namespace Portal.DeploymentService.Class
                         Console.WriteLine($"Updated users list: {updatedUsersList}");
                         await RunCommandInContainer(client, new List<string> { $"echo \"{updatedUsersList}\" > users.txt" }, container.ID);
                         //  chcek if client add the ip 
-                        if(isClient)
+                        if (isClient)
                         {
                             // checked if their are other ip addresses in the container append the  ip address with comma sepration  else create a new file
                             string ipList = await RunCommandInContainer(client, new List<string> { "cat", "/users_ip.txt" }, container.ID);
@@ -228,6 +228,8 @@ namespace Portal.DeploymentService.Class
                         {
                             await RunCommandInContainer(client, new List<string> { $"echo \"{ip}\" >> users_ip.txt" }, createdContainer.ID);
                         }
+                        // add port number in port.txt 
+                        await RunCommandInContainer(client, new List<string> { $"echo \"{port}\" > port.txt" }, createdContainer.ID);
 
                     }
                 }
