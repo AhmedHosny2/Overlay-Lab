@@ -72,29 +72,41 @@ public class IndexModel : PageModel
     }
     public string UserIpAddress { get; private set; }
 
-    // list containers
-    public async Task OnGetAsync()
+    public string? GetIpAddress()
     {
-
-
- // Retrieve the original user's IP address
         if (HttpContext.Request.Headers.ContainsKey("X-Forwarded-For"))
         {
             // Extract the first IP from the X-Forwarded-For header
             UserIpAddress = HttpContext.Request.Headers["X-Forwarded-For"].ToString().Split(',')[0];
             _logger.LogInformation("Original user IP retrieved from X-Forwarded-For: {UserIpAddress}", UserIpAddress);
         }
+        else if(HttpContext.Connection.RemoteIpAddress != null&& HttpContext.Connection.RemoteIpAddress.ToString() != "::1")
+        {
+            
+            _logger.LogInformation("Original user IP retrieved from RemoteIpAddress: {UserIpAddress}", UserIpAddress);
+        }
         else
         {
-            // Fallback to remote IP address if X-Forwarded-For is not set
-            UserIpAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-            _logger.LogInformation("Original user IP retrieved from RemoteIpAddress: {UserIpAddress}", UserIpAddress);
+         // get it from host 
+            UserIpAddress = HttpContext.Request.Host.Host;
+            _logger.LogInformation("Original user IP retrieved from Host: {UserIpAddress}", UserIpAddress);
         }
 
         // Log a general message with the IP
         _logger.LogInformation("User IP Address logged: {UserIpAddress}", UserIpAddress);
+        return UserIpAddress;
 
 
+    }
+    // list containers
+    public async Task OnGetAsync()
+    {
+
+
+
+        // Retrieve the original user's IP address
+
+        GetIpAddress();
 
 
 
@@ -138,22 +150,8 @@ public class IndexModel : PageModel
     private async Task<PageResult> DeployContainerAsync(string ExerciseName)
     {
         // get user's ip
-         if (HttpContext.Request.Headers.ContainsKey("X-Forwarded-For"))
-        {
-            // Extract the first IP from the X-Forwarded-For header
-            UserIpAddress = HttpContext.Request.Headers["X-Forwarded-For"].ToString().Split(',')[0];
-            _logger.LogInformation("Original user IP retrieved from X-Forwarded-For: {UserIpAddress}", UserIpAddress);
-        }
-        else
-        {
-            // Fallback to remote IP address if X-Forwarded-For is not set
-            UserIpAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-            _logger.LogInformation("Original user IP retrieved from RemoteIpAddress: {UserIpAddress}", UserIpAddress);
-        }
-
-        // Log a general message with the IP
-        _logger.LogInformation("User IP Address logged: {UserIpAddress}", UserIpAddress);
-
+        GetIpAddress();
+       
 
 
         try
@@ -171,7 +169,7 @@ public class IndexModel : PageModel
 
 
             // Create the container
-            string createdContainerId = await _deploymentService.GetOrCreateContainerForUser(_dockerClient, exerciseConfig.DockerImage, exerciseConfig.ExerciseName, _uid, exerciseConfig.port ?? "",UserIpAddress
+            string createdContainerId = await _deploymentService.GetOrCreateContainerForUser(_dockerClient, exerciseConfig.DockerImage, exerciseConfig.ExerciseName, _uid, exerciseConfig.port ?? "", UserIpAddress
             , exerciseConfig.ClientSide);
             try
             {
@@ -203,10 +201,10 @@ public class IndexModel : PageModel
 
         _logger.LogInformation($"Stopping container: {exerciseName}");
         // get ip 
-        var ip = HttpContext.Request.Host.Host;
-        _logger.LogInformation($"IP Address: {ip}");
+        GetIpAddress();
+      
         // get container id
-        var serverDetails = await _deploymentService.FetchContainerDetails(_dockerClient, exerciseName, new List<string> { "ID" }, _uid, ip);
+        var serverDetails = await _deploymentService.FetchContainerDetails(_dockerClient, exerciseName, new List<string> { "ID" }, _uid, UserIpAddress);
         var instanceId = serverDetails.ID;
         _logger.LogInformation($"Stopping container: {instanceId}");
         try
@@ -224,22 +222,6 @@ public class IndexModel : PageModel
             Response.Redirect(Request.Path);
         }
     }
-
-
-    // TODO fix this if needed or remove it 
-    // public async Task OnPostContainerIDE(string IpAddress, string instanceId, string Port)
-    // {
-    //     _logger.LogInformation($"Opening container IDE for container: {instanceId}");
-    //     _logger.LogInformation($"IP Address: {IpAddress}");
-    //     _logger.LogInformation($"Port: {Port}");
-    //     // add to http context
-    //     HttpContext.Session.SetString("IpAddress", IpAddress);
-    //     HttpContext.Session.SetString("Port", Port);
-    //     HttpContext.Session.SetString("InstanceId", instanceId);
-    //     // redirect to container ide page
-    //     Response.Redirect("/Containers/ContainerIDE");
-
-    // }
 
 
 }
