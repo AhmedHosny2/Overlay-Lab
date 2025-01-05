@@ -10,6 +10,6 @@ public class ExerciseConfig
     public List<string> DisplayFields { get; set; } = new();
     public bool ClientSide { get; set; }
     public string ClientPort  { get; set; }
-
+    public int MaxUsers { get; set; }
 
 }

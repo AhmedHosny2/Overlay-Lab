@@ -72,7 +72,7 @@ namespace Portal.DeploymentService.Class
         // Create container or add user
         // each time user tries to connect/deploy to the container, this method will be called
         public async Task<string> GetOrCreateContainerForUser(DockerClient client, string imageName, string exerciseName, string Uid, string port, string ip, bool isClient
-        , string clientPort)
+        , string clientPort, int MaxUsers = 10000)
         {
             IList<ContainerListResponse> containersList = await client.Containers.ListContainersAsync(new ContainersListParameters
             {
@@ -104,11 +104,20 @@ namespace Portal.DeploymentService.Class
                     Console.WriteLine($"Users list: {usersList}");
                     // Check if the user is already in the list
                     // important must use the usersList without split here 
+                    // check number of users in the container
+
                     if (usersList.Contains(Uid))
                     {
                         Console.WriteLine("User already in the list");
                         return container.ID;
                     }
+                    else if (usersList.Split(',').Length >= MaxUsers)
+                    {
+                        Console.WriteLine("Max number of users reached");
+                        return string.Empty;
+                        ///TODO: Create new container with dynamic port
+                    }
+
                     else
                     {
                         Console.WriteLine("User not in the list, add user to the list of container id " + container.ID);

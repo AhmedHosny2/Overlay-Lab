@@ -166,11 +166,9 @@ public class IndexModel : PageModel
 
 
             _logger.LogInformation("Deploying container with uid: {uid}", _uid);
-
-
             // Create the container
             string createdContainerId = await _deploymentService.GetOrCreateContainerForUser(_dockerClient, exerciseConfig.DockerImage, exerciseConfig.ExerciseName, _uid, exerciseConfig.port ?? "", UserIpAddress
-            , exerciseConfig.ClientSide, exerciseConfig.ClientPort);
+            , exerciseConfig.ClientSide, exerciseConfig.ClientPort, exerciseConfig.MaxUsers);
             try
             {
                 // store id in session just for testing

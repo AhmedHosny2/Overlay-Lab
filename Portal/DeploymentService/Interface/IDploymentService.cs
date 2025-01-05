@@ -13,7 +13,7 @@ namespace Portal.DeploymentService.Interface
     {
         public DockerClient CreateDockerClient();
         public Task EnsureDockerImageExists(DockerClient client, string ImageName);
-        public Task<string> GetOrCreateContainerForUser(DockerClient client, string ImageName, string exerciseName, string Uid, string port, string ip, bool isCLient, string clientPort);
+        public Task<string> GetOrCreateContainerForUser(DockerClient client, string ImageName, string exerciseName, string Uid, string port, string ip, bool isCLient, string clientPort,int MaxUsers);
         public Task<string> InitializeContainer(DockerClient client, string ImageName, string exerciseName, string Uid, string port, string ip, bool isCLient, string clientPort);
         public Task<IList<string>> ListUsersContainer(DockerClient client, string Uid);
         public Task<ServerInstance> FetchContainerDetails(DockerClient client, string exerciseName, List<string> DisplayFields, string Uid, string ip);
