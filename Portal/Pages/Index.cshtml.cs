@@ -137,6 +137,25 @@ public class IndexModel : PageModel
     // Main function to run the docker commands
     private async Task<PageResult> DeployContainerAsync(string ExerciseName)
     {
+        // get user's ip
+         if (HttpContext.Request.Headers.ContainsKey("X-Forwarded-For"))
+        {
+            // Extract the first IP from the X-Forwarded-For header
+            UserIpAddress = HttpContext.Request.Headers["X-Forwarded-For"].ToString().Split(',')[0];
+            _logger.LogInformation("Original user IP retrieved from X-Forwarded-For: {UserIpAddress}", UserIpAddress);
+        }
+        else
+        {
+            // Fallback to remote IP address if X-Forwarded-For is not set
+            UserIpAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+            _logger.LogInformation("Original user IP retrieved from RemoteIpAddress: {UserIpAddress}", UserIpAddress);
+        }
+
+        // Log a general message with the IP
+        _logger.LogInformation("User IP Address logged: {UserIpAddress}", UserIpAddress);
+
+
+
         try
         {
             ExerciseConfig? exerciseConfig = GetExercises().FirstOrDefault(e => e.ExerciseName == ExerciseName);
@@ -152,7 +171,8 @@ public class IndexModel : PageModel
 
 
             // Create the container
-            string createdContainerId = await _deploymentService.GetOrCreateContainerForUser(_dockerClient, exerciseConfig.DockerImage, exerciseConfig.ExerciseName, _uid, exerciseConfig.port ?? "");
+            string createdContainerId = await _deploymentService.GetOrCreateContainerForUser(_dockerClient, exerciseConfig.DockerImage, exerciseConfig.ExerciseName, _uid, exerciseConfig.port ?? "",UserIpAddress
+            , exerciseConfig.ClientSide);
             try
             {
                 // store id in session just for testing

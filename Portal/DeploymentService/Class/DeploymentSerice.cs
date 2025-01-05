@@ -71,7 +71,7 @@ namespace Portal.DeploymentService.Class
 
         // Create container or add user
         // each time user tries to connect/deploy to the container, this method will be called
-        public async Task<string> GetOrCreateContainerForUser(DockerClient client, string imageName, string exerciseName, string Uid, string port)
+        public async Task<string> GetOrCreateContainerForUser(DockerClient client, string imageName, string exerciseName, string Uid, string port, string ip, bool isClient)
         {
             IList<ContainerListResponse> containersList = await client.Containers.ListContainersAsync(new ContainersListParameters
             {
@@ -82,7 +82,7 @@ namespace Portal.DeploymentService.Class
             if (containersList.Count == 0)
             {
                 Console.WriteLine("No containers found, create a new one");
-                return await InitializeContainer(client, imageName, exerciseName, Uid, port);
+                return await InitializeContainer(client, imageName, exerciseName, Uid, port, ip, isClient);
 
             }
             bool imageCreated = false;
@@ -115,6 +115,20 @@ namespace Portal.DeploymentService.Class
                         string updatedUsersList = $"{usersList},{Uid}";
                         Console.WriteLine($"Updated users list: {updatedUsersList}");
                         await RunCommandInContainer(client, new List<string> { $"echo \"{updatedUsersList}\" > users.txt" }, container.ID);
+                        //  chcek if client add the ip 
+                        if(isClient)
+                        {
+                            // checked if their are other ip addresses in the container append the  ip address with comma sepration  else create a new file
+                            string ipList = await RunCommandInContainer(client, new List<string> { "cat", "/users_ip.txt" }, container.ID);
+                            if (ipList == null)
+                            {
+                                await RunCommandInContainer(client, new List<string> { $"echo \"{ip}\" > users_ip.txt" }, container.ID);
+                            }
+                            else
+                            {
+                                await RunCommandInContainer(client, new List<string> { $"echo \"{ip}\" >> users_ip.txt" }, container.ID);
+                            }
+                        }
                         return container.ID;
                     }
 
@@ -125,14 +139,14 @@ namespace Portal.DeploymentService.Class
             if (!imageCreated)
             {
                 Console.WriteLine("No containers with image specs found, create a new one");
-                return await InitializeContainer(client, imageName, exerciseName, Uid, port);
+                return await InitializeContainer(client, imageName, exerciseName, Uid, port, ip, isClient);
             }
 
             return string.Empty;
         }
 
         // Create a new container
-        public async Task<string> InitializeContainer(DockerClient client, string imageName, string exerciseName, string Uid, string port)
+        public async Task<string> InitializeContainer(DockerClient client, string imageName, string exerciseName, string Uid, string port, string ip, bool isClient)
         {
             await EnsureDockerImageExists(client, imageName);
 
@@ -202,6 +216,20 @@ namespace Portal.DeploymentService.Class
                     // add uid to the list of users
                     await RunCommandInContainer(client, new List<string> { $"echo \"{Uid}\" >> users.txt" }, createdContainer.ID);
                     Console.WriteLine("User added to the list of users");
+                    if (isClient)
+                    {
+                        // checked if their are other ip addresses in the container append the  ip address with comma sepration  else create a new file
+                        string ipList = await RunCommandInContainer(client, new List<string> { "cat", "/users_ip.txt" }, createdContainer.ID);
+                        if (ipList == null)
+                        {
+                            await RunCommandInContainer(client, new List<string> { $"echo \"{ip}\" > users_ip.txt" }, createdContainer.ID);
+                        }
+                        else
+                        {
+                            await RunCommandInContainer(client, new List<string> { $"echo \"{ip}\" >> users_ip.txt" }, createdContainer.ID);
+                        }
+
+                    }
                 }
                 else
                 {

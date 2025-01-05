@@ -8,6 +8,7 @@ public class ExerciseConfig
     public string DockerImage { get; set; }
     public string port { get; set; }
     public List<string> DisplayFields { get; set; } = new();
+    public bool ClientSide { get; set; }
 
 
 }
