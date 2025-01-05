@@ -31,9 +31,9 @@ builder.Services.Configure<ExerciseConfig>(options =>
 });
 
 // Configure Microsoft Identity authentication
-// builder.Services.AddMicrosoftIdentityWebAppAuthentication(builder.Configuration, "AzureAd")
-//     .EnableTokenAcquisitionToCallDownstreamApi(new string[] { "user.read" })
-//     .AddInMemoryTokenCaches();
+builder.Services.AddMicrosoftIdentityWebAppAuthentication(builder.Configuration, "AzureAd")
+    .EnableTokenAcquisitionToCallDownstreamApi(new string[] { "user.read" })
+    .AddInMemoryTokenCaches();
 
 // Configure Cookie Policy
 builder.Services.Configure<CookiePolicyOptions>(options =>
@@ -44,11 +44,11 @@ builder.Services.Configure<CookiePolicyOptions>(options =>
 });
 
 // Configure OpenID Connect Options
-// builder.Services.Configure<OpenIdConnectOptions>(OpenIdConnectDefaults.AuthenticationScheme, options =>
-// {
-//     options.CorrelationCookie.SameSite = SameSiteMode.None;
-//     options.CorrelationCookie.SecurePolicy = CookieSecurePolicy.Always;
-// });
+builder.Services.Configure<OpenIdConnectOptions>(OpenIdConnectDefaults.AuthenticationScheme, options =>
+{
+    options.CorrelationCookie.SameSite = SameSiteMode.None;
+    options.CorrelationCookie.SecurePolicy = CookieSecurePolicy.Always;
+});
 
 var app = builder.Build();
 
