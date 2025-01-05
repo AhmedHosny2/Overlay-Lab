@@ -80,15 +80,15 @@ public class IndexModel : PageModel
             UserIpAddress = HttpContext.Request.Headers["X-Forwarded-For"].ToString().Split(',')[0];
             _logger.LogInformation("Original user IP retrieved from X-Forwarded-For: {UserIpAddress}", UserIpAddress);
         }
-        else if(HttpContext.Connection.RemoteIpAddress != null&& HttpContext.Connection.RemoteIpAddress.ToString() != "::1")
+        else if (HttpContext.Connection.RemoteIpAddress != null && HttpContext.Connection.RemoteIpAddress.ToString() != "::1")
         {
-            
+
             _logger.LogInformation("Original user IP retrieved from RemoteIpAddress: {UserIpAddress}", UserIpAddress);
         }
         else
         {
-         // get it from host 
-            UserIpAddress = HttpContext.Request.Host.Host;
+            // just handling the case where the ip is not found for locacl host not vm  
+            UserIpAddress = "192.168.64.1";
             _logger.LogInformation("Original user IP retrieved from Host: {UserIpAddress}", UserIpAddress);
         }
 
@@ -151,7 +151,7 @@ public class IndexModel : PageModel
     {
         // get user's ip
         GetIpAddress();
-       
+
 
 
         try
@@ -170,7 +170,7 @@ public class IndexModel : PageModel
 
             // Create the container
             string createdContainerId = await _deploymentService.GetOrCreateContainerForUser(_dockerClient, exerciseConfig.DockerImage, exerciseConfig.ExerciseName, _uid, exerciseConfig.port ?? "", UserIpAddress
-            , exerciseConfig.ClientSide);
+            , exerciseConfig.ClientSide, exerciseConfig.ClientPort);
             try
             {
                 // store id in session just for testing
@@ -202,7 +202,7 @@ public class IndexModel : PageModel
         _logger.LogInformation($"Stopping container: {exerciseName}");
         // get ip 
         GetIpAddress();
-      
+
         // get container id
         var serverDetails = await _deploymentService.FetchContainerDetails(_dockerClient, exerciseName, new List<string> { "ID" }, _uid, UserIpAddress);
         var instanceId = serverDetails.ID;

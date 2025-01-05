@@ -71,7 +71,8 @@ namespace Portal.DeploymentService.Class
 
         // Create container or add user
         // each time user tries to connect/deploy to the container, this method will be called
-        public async Task<string> GetOrCreateContainerForUser(DockerClient client, string imageName, string exerciseName, string Uid, string port, string ip, bool isClient)
+        public async Task<string> GetOrCreateContainerForUser(DockerClient client, string imageName, string exerciseName, string Uid, string port, string ip, bool isClient
+        , string clientPort)
         {
             IList<ContainerListResponse> containersList = await client.Containers.ListContainersAsync(new ContainersListParameters
             {
@@ -82,7 +83,7 @@ namespace Portal.DeploymentService.Class
             if (containersList.Count == 0)
             {
                 Console.WriteLine("No containers found, create a new one");
-                return await InitializeContainer(client, imageName, exerciseName, Uid, port, ip, isClient);
+                return await InitializeContainer(client, imageName, exerciseName, Uid, port, ip, isClient, clientPort);
 
             }
             bool imageCreated = false;
@@ -139,14 +140,15 @@ namespace Portal.DeploymentService.Class
             if (!imageCreated)
             {
                 Console.WriteLine("No containers with image specs found, create a new one");
-                return await InitializeContainer(client, imageName, exerciseName, Uid, port, ip, isClient);
+                return await InitializeContainer(client, imageName, exerciseName, Uid, port, ip, isClient, clientPort);
             }
 
             return string.Empty;
         }
 
         // Create a new container
-        public async Task<string> InitializeContainer(DockerClient client, string imageName, string exerciseName, string Uid, string port, string ip, bool isClient)
+        public async Task<string> InitializeContainer(DockerClient client, string imageName, string exerciseName, string Uid, string port, string ip, bool isClient, string
+        clientPort)
         {
             await EnsureDockerImageExists(client, imageName);
 
@@ -229,7 +231,7 @@ namespace Portal.DeploymentService.Class
                             await RunCommandInContainer(client, new List<string> { $"echo \"{ip}\" >> users_ip.txt" }, createdContainer.ID);
                         }
                         // add port number in port.txt 
-                        await RunCommandInContainer(client, new List<string> { $"echo \"{port}\" > port.txt" }, createdContainer.ID);
+                        await RunCommandInContainer(client, new List<string> { $"echo \"{clientPort}\" > port.txt" }, createdContainer.ID);
 
                     }
                 }

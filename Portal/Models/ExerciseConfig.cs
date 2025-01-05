@@ -9,6 +9,7 @@ public class ExerciseConfig
     public string port { get; set; }
     public List<string> DisplayFields { get; set; } = new();
     public bool ClientSide { get; set; }
+    public string ClientPort  { get; set; }
 
 
 }
