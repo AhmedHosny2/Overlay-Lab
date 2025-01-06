@@ -23,5 +23,6 @@ namespace Portal.DeploymentService.Interface
         public Task PauseContainer(DockerClient client, string ContainerId);
         // todo delete container 
         public Task RemoveUserOrPauseContainer(DockerClient client, string ContainerId, string Uid);
+        public Task ClientExercisePassed(uid, container_id);
     }
 }

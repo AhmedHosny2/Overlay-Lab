@@ -494,6 +494,32 @@ namespace Portal.DeploymentService.Class
             return string.Empty;
         }
 
+        public async Task<string> ClientExercisePassed(string uid, string container_id)
+        {
+            // get container id from container name
+            DockerClient client = CreateDockerClient();
+            string containerId = await GetContainerId(client, container_id);
+            // remove user's ip and uid from users_ip.txt
+            string ipList = await RunCommandInContainer(client, new List<string> { "cat", "/users_ip.txt" }, containerId);
+            if (ipList != null)
+            {
+                // where users ip and uid are separated by comma
+                // remove user's ip and uid from the list
+                var updatedIpList = ipList
+                    .Split('\n')
+                    .Where(x => !x.Contains(uid)) // Filter out items containing Uid
+                    .Where(x => !string.IsNullOrWhiteSpace(x)) // Remove spaces or empty lines
+                    .Select(x => x.Trim()) // Optional: Remove extra spaces around entries
+                    .ToList();
+                await RunCommandInContainer(client, new List<string> { $"echo \"{string.Join("\n", updatedIpList)}\" > users_ip.txt" }, containerId);
+                Console.WriteLine("User removed from container's list of ip addresses");
+                Console.WriteLine($"Updated ip list: {string.Join("\n", updatedIpList)}");
+            }
+            // remove user from the list of users
+            await RemoveUserOrPauseContainer(client, containerId, uid);
+            return "Client exercise passed successfully";
+
+        }
         public int FindAvailablePort()
         {
             TcpListener listener = new TcpListener(IPAddress.Loopback, 0);
