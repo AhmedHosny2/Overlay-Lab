@@ -87,8 +87,8 @@
     // Apply Cookie Policy before Authentication
     app.UseCookiePolicy();
 
-    app.UseAuthentication();
-    app.UseAuthorization();
+    // app.UseAuthentication();
+    // app.UseAuthorization();
 
     // Map static assets and Razor Pages
     app.MapRazorPages();
