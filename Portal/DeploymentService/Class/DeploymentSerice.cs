@@ -496,11 +496,12 @@ namespace Portal.DeploymentService.Class
 
         public async Task<string> ClientExercisePassed(string uid, string container_id)
         {
+            // log inputs 
+            Console.WriteLine($"Client evaluation for uid: {uid} and container id: {container_id} mn kalb el ClientExercisePassed");
             // get container id from container name
             DockerClient client = CreateDockerClient();
-            string containerId = await GetContainerId(client, container_id);
             // remove user's ip and uid from users_ip.txt
-            string ipList = await RunCommandInContainer(client, new List<string> { "cat", "/users_ip.txt" }, containerId);
+            string ipList = await RunCommandInContainer(client, new List<string> { "cat", "/users_ip.txt" }, container_id);
             if (ipList != null)
             {
                 // where users ip and uid are separated by comma
@@ -511,12 +512,12 @@ namespace Portal.DeploymentService.Class
                     .Where(x => !string.IsNullOrWhiteSpace(x)) // Remove spaces or empty lines
                     .Select(x => x.Trim()) // Optional: Remove extra spaces around entries
                     .ToList();
-                await RunCommandInContainer(client, new List<string> { $"echo \"{string.Join("\n", updatedIpList)}\" > users_ip.txt" }, containerId);
+                await RunCommandInContainer(client, new List<string> { $"echo \"{string.Join("\n", updatedIpList)}\" > users_ip.txt" }, container_id);
                 Console.WriteLine("User removed from container's list of ip addresses");
                 Console.WriteLine($"Updated ip list: {string.Join("\n", updatedIpList)}");
             }
             // remove user from the list of users
-            await RemoveUserOrPauseContainer(client, containerId, uid);
+            await RemoveUserOrPauseContainer(client, container_id, uid);
             return "Client exercise passed successfully";
 
         }

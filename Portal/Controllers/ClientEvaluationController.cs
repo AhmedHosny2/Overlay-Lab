@@ -20,9 +20,11 @@ namespace Portal.DeploymentService.Controllers
         {
             try
             {
+                // uid and container id 
+                Console.WriteLine("Client evaluation for uid: {0} and container id: {1}", uid, container_id);
                 // Call the service function
                 _deploymentService.ClientExercisePassed(uid, container_id);
-                
+                Console.WriteLine("Client exercise passed successfully.");
                 // Return success response
                 return Ok(new { Message = "Client exercise passed successfully.", Uid = uid, ContainerId = container_id });
             }
