@@ -10,6 +10,8 @@ using System.Threading.Tasks;
 using Portal.DeploymentService.Interface;
 using Portal.Models;
 using Newtonsoft.Json;
+using System.Net.Sockets;
+using System.Net;
 
 namespace Portal.DeploymentService.Class
 {
@@ -114,8 +116,8 @@ namespace Portal.DeploymentService.Class
                     else if (usersList.Split(',').Length >= MaxUsers)
                     {
                         Console.WriteLine("Max number of users reached");
-                        return string.Empty;
-                        ///TODO: Create new container with dynamic port
+                        await InitializeContainer(client, imageName, exerciseName, Uid, port, ip, isClient, clientPort);
+                        return container.ID;
                     }
 
                     else
@@ -160,7 +162,10 @@ namespace Portal.DeploymentService.Class
         clientPort)
         {
             await EnsureDockerImageExists(client, imageName);
+                        int hostPort = FindAvailablePort();
 
+                 string hostPortStr = hostPort.ToString();
+                   Console.WriteLine($"Assigned host port: {port} ");
             // Log the input parameters
             Console.WriteLine($"Image Name: {imageName}, UID: {Uid}, Port: {port}");
 
@@ -175,7 +180,7 @@ namespace Portal.DeploymentService.Class
                 {
                     new PortBinding
                     {
-                        HostPort = port // Host port (no "/tcp" needed)
+                        HostPort = hostPortStr // Host port (no "/tcp" needed)
                     }
                 }
             }
@@ -198,17 +203,19 @@ namespace Portal.DeploymentService.Class
                 ExposedPorts = new Dictionary<string, EmptyStruct>
 
                 {
-            { $"{port}/tcp", new EmptyStruct() }
+            { $"{hostPortStr}/tcp", new EmptyStruct() }
             }
             };
 
 
+                // random string of 5 chars 
+                string randomString = Guid.NewGuid().ToString().Substring(0, 5);
 
 
             var createContainerParameters = new CreateContainerParameters(config)
             {
                 HostConfig = hostConfig,
-                Name = exerciseName
+                Name = exerciseName + randomString
 
             };
 
@@ -475,13 +482,30 @@ namespace Portal.DeploymentService.Class
             });
             foreach (var container in containersList)
             {
-                if (container.Names.Contains($"/{containerName}"))
+               // check if the string is part of the name 
+               foreach (var name in container.Names)
                 {
-                    return container.ID;
+                    if (name.Contains(containerName))
+                    {
+                        return container.ID;
+                    }
                 }
             }
             return string.Empty;
         }
 
+        public int FindAvailablePort()
+        {
+            TcpListener listener = new TcpListener(IPAddress.Loopback, 0);
+            try
+            {
+                listener.Start();
+                return ((IPEndPoint)listener.LocalEndpoint).Port;
+            }
+            finally
+            {
+                listener.Stop();
+            }
+        }
     }
 }

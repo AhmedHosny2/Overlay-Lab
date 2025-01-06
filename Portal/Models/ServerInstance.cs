@@ -38,7 +38,7 @@ namespace Portal.Models
         {
         }
 
-        public ServerInstance(string containerInspectResponse, List<string> displayFields, string ip )
+        public ServerInstance(string containerInspectResponse, List<string> displayFields, string ip)
         {
             if (containerInspectResponse == null || displayFields == null)
                 return;
@@ -46,16 +46,58 @@ namespace Portal.Models
             var serverInstanceType = typeof(ServerInstance);
             // in all cases get image and port number by defualt 
 
-            // this.Port = containerInspectResponse.Config.ExposedPorts.Keys.First();
+            // this.Port = containerInspectResponse.HostConf
             // this.Image = containerInspectResponse.Config.Image;
             // get image port and id from jsgon 
-            var Allports = GetValueFromJson(containerInspectResponse, "Config.ExposedPorts.*");
-            Allports = Allports.Split('/')[0];
-            // remove " and {
-            Allports = Allports.Replace("\"", "");
-            Allports = Allports.Replace("{", "");
-            Allports = Allports.Replace("}", "");
-            this.Port = Allports;
+            // this.Port = GetValueFromJson(containerInspectResponse, "Config.ExposedPorts.*");
+            // Extract the entire PortBindings object as a JSON string
+            var portBindingsJson = GetValueFromJson(containerInspectResponse, "HostConfig.PortBindings");
+
+            if (string.IsNullOrEmpty(portBindingsJson))
+            {
+                Console.WriteLine("PortBindings structure is null or empty.");
+                return;
+            }
+
+            try
+            {
+                // Deserialize the PortBindings JSON into a dictionary
+                var portBindingsObject = JsonConvert.DeserializeObject<Dictionary<string, List<Dictionary<string, string>>>>(portBindingsJson);
+
+                if (portBindingsObject != null && portBindingsObject.Count > 0)
+                {
+                    // Dynamically extract the first container port key (e.g., "5005/tcp")
+                    var dynamicPortKey = portBindingsObject.Keys.FirstOrDefault();
+
+                    if (!string.IsNullOrEmpty(dynamicPortKey))
+                    {
+                        // Get the HostPort for the dynamic port
+                        var hostPortEntry = portBindingsObject[dynamicPortKey]?.FirstOrDefault();
+                        if (hostPortEntry != null && hostPortEntry.ContainsKey("HostPort"))
+                        {
+                            this.Port = hostPortEntry["HostPort"];
+                            Console.WriteLine($"Extracted HostPort for dynamic container port {dynamicPortKey}: {this.Port}");
+                        }
+                        else
+                        {
+                            Console.WriteLine($"No HostPort found for the dynamic container port {dynamicPortKey}.");
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine("No dynamic port key found in PortBindings.");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("PortBindings structure is null or empty.");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error parsing PortBindings: {ex.Message}");
+            }
+
             this.Image = GetValueFromJson(containerInspectResponse, "Config.Image");
             this.ID = GetValueFromJson(containerInspectResponse, "Id");
             this.IpAddress = GetVmIpAddress();
@@ -80,7 +122,7 @@ namespace Portal.Models
                 // }
                 map[key] = value;
 
-    
+
 
             }
             // log map
@@ -94,24 +136,24 @@ namespace Portal.Models
         }
 
         public static string GetVmIpAddress()
-    {
-        foreach (var networkInterface in NetworkInterface.GetAllNetworkInterfaces())
-        
         {
-            if (networkInterface.OperationalStatus == OperationalStatus.Up)
+            foreach (var networkInterface in NetworkInterface.GetAllNetworkInterfaces())
+
             {
-                foreach (var ipAddress in networkInterface.GetIPProperties().UnicastAddresses)
+                if (networkInterface.OperationalStatus == OperationalStatus.Up)
                 {
-                    if (ipAddress.Address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork &&
-                        ipAddress.Address.ToString().StartsWith("10."))
+                    foreach (var ipAddress in networkInterface.GetIPProperties().UnicastAddresses)
                     {
-                        return ipAddress.Address.ToString();
+                        if (ipAddress.Address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork &&
+                            ipAddress.Address.ToString().StartsWith("10."))
+                        {
+                            return ipAddress.Address.ToString();
+                        }
                     }
                 }
             }
+            return "No VM IP starting with 10. found.";
         }
-        return "No VM IP starting with 10. found.";
-    }
         public static string GetValueFromJson(string json, string keyPath)
         {
             try
