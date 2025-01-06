@@ -134,11 +134,11 @@ namespace Portal.DeploymentService.Class
                             string ipList = await RunCommandInContainer(client, new List<string> { "cat", "/users_ip.txt" }, container.ID);
                             if (ipList == null)
                             {
-                                await RunCommandInContainer(client, new List<string> { $"echo \"{ip}\" > users_ip.txt" }, container.ID);
+                                await RunCommandInContainer(client, new List<string> { $"echo \"{ip},{Uid}\" > users_ip.txt" }, container.ID);
                             }
                             else
                             {
-                                await RunCommandInContainer(client, new List<string> { $"echo \"{ip}\" >> users_ip.txt" }, container.ID);
+                                await RunCommandInContainer(client, new List<string> { $"echo \"{ip},{Uid}\" >> users_ip.txt" }, container.ID);
                             }
                         }
                         return container.ID;
@@ -162,10 +162,10 @@ namespace Portal.DeploymentService.Class
         clientPort)
         {
             await EnsureDockerImageExists(client, imageName);
-                        int hostPort = FindAvailablePort();
+            int hostPort = FindAvailablePort();
 
-                 string hostPortStr = hostPort.ToString();
-                   Console.WriteLine($"Assigned host port: {port} ");
+            string hostPortStr = hostPort.ToString();
+            Console.WriteLine($"Assigned host port: {port} ");
             // Log the input parameters
             Console.WriteLine($"Image Name: {imageName}, UID: {Uid}, Port: {port}");
 
@@ -208,8 +208,8 @@ namespace Portal.DeploymentService.Class
             };
 
 
-                // random string of 5 chars 
-                string randomString = Guid.NewGuid().ToString().Substring(0, 5);
+            // random string of 5 chars 
+            string randomString = Guid.NewGuid().ToString().Substring(0, 5);
 
 
             var createContainerParameters = new CreateContainerParameters(config)
@@ -240,11 +240,11 @@ namespace Portal.DeploymentService.Class
                         string ipList = await RunCommandInContainer(client, new List<string> { "cat", "/users_ip.txt" }, createdContainer.ID);
                         if (ipList == null)
                         {
-                            await RunCommandInContainer(client, new List<string> { $"echo \"{ip}\" > users_ip.txt" }, createdContainer.ID);
+                            await RunCommandInContainer(client, new List<string> { $"echo \"{ip},{Uid}\" > users_ip.txt" }, createdContainer.ID);
                         }
                         else
                         {
-                            await RunCommandInContainer(client, new List<string> { $"echo \"{ip}\" >> users_ip.txt" }, createdContainer.ID);
+                            await RunCommandInContainer(client, new List<string> { $"echo \"{ip},{Uid}\" >> users_ip.txt" }, createdContainer.ID);
                         }
                         // add port number in port.txt 
                         await RunCommandInContainer(client, new List<string> { $"echo \"{clientPort}\" > port.txt" }, createdContainer.ID);
@@ -482,8 +482,8 @@ namespace Portal.DeploymentService.Class
             });
             foreach (var container in containersList)
             {
-               // check if the string is part of the name 
-               foreach (var name in container.Names)
+                // check if the string is part of the name 
+                foreach (var name in container.Names)
                 {
                     if (name.Contains(containerName))
                     {
