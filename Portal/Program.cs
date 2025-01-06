@@ -1,102 +1,98 @@
-using Microsoft.AspNetCore.Authentication.OpenIdConnect;
-using Microsoft.AspNetCore.HttpOverrides;
-using Microsoft.Identity.Web;
-using Microsoft.Identity.Web.UI;
-using Portal.DeploymentService.Class;
-using Portal.DeploymentService.Interface;
-var builder = WebApplication.CreateBuilder(args);
+    using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+    using Microsoft.AspNetCore.HttpOverrides;
+    using Microsoft.Identity.Web;
+    using Microsoft.Identity.Web.UI;
+    using Portal.DeploymentService.Class;
+    using Portal.DeploymentService.Interface;
 
-builder.Services.AddSession();
+    var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container
-builder.Services.AddRazorPages()
-    .AddMicrosoftIdentityUI();
+    builder.Services.AddSession();
 
-builder.Services.AddDistributedMemoryCache();
+    // Add services to the container
+    builder.Services.AddRazorPages()
+        .AddMicrosoftIdentityUI();
 
-// Dependency injection for DeploymentService
-builder.Services.AddSingleton<IDeploymentService, DeploymentService>();
+    builder.Services.AddControllers(); // Enable controllers
 
-// Dynamically load all exercise configuration files
-var exerciseConfigs = Directory.GetFiles("ExConfiguration", "*.json");
-foreach (var filePath in exerciseConfigs)
-{
-    builder.Configuration.AddJsonFile(filePath, optional: true, reloadOnChange: true);
-}
+    builder.Services.AddDistributedMemoryCache();
 
-// Configure strongly-typed configuration for ExerciseConfig
-builder.Services.Configure<ExerciseConfig>(options =>
-{
-    builder.Configuration.GetSection("ExerciseConfig").Bind(options);
-});
+    // Dependency injection for DeploymentService
+    builder.Services.AddSingleton<IDeploymentService, DeploymentService>();
 
-// Configure Microsoft Identity authentication
-builder.Services.AddMicrosoftIdentityWebAppAuthentication(builder.Configuration, "AzureAd")
-    .EnableTokenAcquisitionToCallDownstreamApi(new string[] { "user.read" })
-    .AddInMemoryTokenCaches();
+    // Dynamically load all exercise configuration files
+    var exerciseConfigs = Directory.GetFiles("ExConfiguration", "*.json");
+    foreach (var filePath in exerciseConfigs)
+    {
+        builder.Configuration.AddJsonFile(filePath, optional: true, reloadOnChange: true);
+    }
 
-// Configure Cookie Policy
-builder.Services.Configure<CookiePolicyOptions>(options =>
-{
-    options.MinimumSameSitePolicy = SameSiteMode.None;
-    options.Secure = CookieSecurePolicy.Always;
-    options.HttpOnly = Microsoft.AspNetCore.CookiePolicy.HttpOnlyPolicy.Always;
-});
+    // Configure strongly-typed configuration for ExerciseConfig
+    builder.Services.Configure<ExerciseConfig>(options =>
+    {
+        builder.Configuration.GetSection("ExerciseConfig").Bind(options);
+    });
 
-// Configure OpenID Connect Options
-builder.Services.Configure<OpenIdConnectOptions>(OpenIdConnectDefaults.AuthenticationScheme, options =>
-{
-    options.CorrelationCookie.SameSite = SameSiteMode.None;
-    options.CorrelationCookie.SecurePolicy = CookieSecurePolicy.Always;
-});
+    // Configure Microsoft Identity authentication
+    builder.Services.AddMicrosoftIdentityWebAppAuthentication(builder.Configuration, "AzureAd")
+        .EnableTokenAcquisitionToCallDownstreamApi(new string[] { "user.read" })
+        .AddInMemoryTokenCaches();
 
-var app = builder.Build();
+    // Configure Cookie Policy
+    builder.Services.Configure<CookiePolicyOptions>(options =>
+    {
+        options.MinimumSameSitePolicy = SameSiteMode.None;
+        options.Secure = CookieSecurePolicy.Always;
+        options.HttpOnly = Microsoft.AspNetCore.CookiePolicy.HttpOnlyPolicy.Always;
+    });
 
-// Middleware to handle forwarded headers (if behind a proxy)
-app.UseForwardedHeaders(new ForwardedHeadersOptions
-{
-    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
-});
+    // Configure OpenID Connect Options
+    builder.Services.Configure<OpenIdConnectOptions>(OpenIdConnectDefaults.AuthenticationScheme, options =>
+    {
+        options.CorrelationCookie.SameSite = SameSiteMode.None;
+        options.CorrelationCookie.SecurePolicy = CookieSecurePolicy.Always;
+    });
 
-// Enable session middleware
-app.UseSession();
+    var app = builder.Build();
 
-app.UseForwardedHeaders(new ForwardedHeadersOptions
-{
-    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto,
-    ForwardLimit = 1, // Optional: Limits the number of forwarders to trust
-    KnownNetworks = { }, // Optional: Add known proxy IPs here if required
-    KnownProxies = { } // Optional: Add specific proxy IPs here
-});
+    // Middleware to handle forwarded headers (if behind a proxy)
+    app.UseForwardedHeaders(new ForwardedHeadersOptions
+    {
+        ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+    });
 
-// Enforce Content Security Policy (CSP) if needed
-// app.Use(async (context, next) =>
-// {
-//     context.Response.Headers.Append("Content-Security-Policy", 
-//         "default-src 'self'; " +
-//         "script-src 'self' https://stackpath.bootstrapcdn.com https://code.jquery.com https://cdn.jsdelivr.net;");
-//     await next();
-// });
+    // Enable session middleware
+    app.UseSession();
 
-// Configure the HTTP request pipeline
-if (!app.Environment.IsDevelopment())
-{
-    app.UseExceptionHandler("/Error");
-    app.UseHsts();
-}
+    app.UseForwardedHeaders(new ForwardedHeadersOptions
+    {
+        ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto,
+        ForwardLimit = 1, // Optional: Limits the number of forwarders to trust
+        KnownNetworks = { }, // Optional: Add known proxy IPs here if required
+        KnownProxies = { } // Optional: Add specific proxy IPs here
+    });
 
-app.UseHttpsRedirection();
-app.UseStaticFiles();
+    // Configure the HTTP request pipeline
+    if (!app.Environment.IsDevelopment())
+    {
+        app.UseExceptionHandler("/Error");
+        app.UseHsts();
+    }
 
-app.UseRouting();
+    app.UseHttpsRedirection();
+    app.UseStaticFiles();
 
-// Apply Cookie Policy before Authentication
-app.UseCookiePolicy();
+    app.UseRouting();
 
-app.UseAuthentication();
-app.UseAuthorization();
+    // Apply Cookie Policy before Authentication
+    app.UseCookiePolicy();
 
-// Map static assets and Razor Pages
-app.MapRazorPages();
+    app.UseAuthentication();
+    app.UseAuthorization();
 
-app.Run();
+    // Map static assets and Razor Pages
+    app.MapRazorPages();
+
+    app.MapControllers(); // Map controller routes
+    
+    app.Run();
