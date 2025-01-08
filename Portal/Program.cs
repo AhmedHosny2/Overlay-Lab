@@ -1,56 +1,86 @@
-    using Microsoft.AspNetCore.Authentication.OpenIdConnect;
-    using Microsoft.AspNetCore.HttpOverrides;
-    using Microsoft.Identity.Web;
-    using Microsoft.Identity.Web.UI;
-    using Portal.DeploymentService.Class;
-    using Portal.DeploymentService.Interface;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.Identity.Web;
+using Microsoft.Identity.Web.UI;
+using Portal.DeploymentService.Class;
+using Portal.DeploymentService.Interface;
+using Microsoft.Extensions.Logging;
 
-    var builder = WebApplication.CreateBuilder(args);
+var builder = WebApplication.CreateBuilder(args);
 
-    builder.Services.AddSession();
+// Configure logging
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+// Optionally, add other logging providers if needed
+// builder.Logging.AddDebug();
 
-    // Add services to the container
-    builder.Services.AddRazorPages()
-        .AddMicrosoftIdentityUI();
+// Create a temporary logger for configuration purposes
+using var tempLoggerFactory = LoggerFactory.Create(logging =>
+{
+    logging.AddConsole();
+    // Add other logging providers if necessary
+});
+var tempLogger = tempLoggerFactory.CreateLogger<Program>();
 
-    builder.Services.AddControllers(); // Enable controllers
+// Add services to the container
+builder.Services.AddRazorPages()
+    .AddMicrosoftIdentityUI();
 
-    builder.Services.AddDistributedMemoryCache();
+builder.Services.AddControllers(); // Enable controllers
 
-    // Dependency injection for DeploymentService
-    builder.Services.AddSingleton<IDeploymentService, DeploymentService>();
+builder.Services.AddDistributedMemoryCache();
+builder.Services.AddSession();
 
-    // Dynamically load all exercise configuration files
-    var exerciseConfigs = Directory.GetFiles("ExConfiguration", "*.json");
-    foreach (var filePath in exerciseConfigs)
-    {
-        builder.Configuration.AddJsonFile(filePath, optional: true, reloadOnChange: true);
-    }
+// Dependency injection for DeploymentService
+builder.Services.AddSingleton<IDeploymentService, DeploymentService>();
 
-    // Configure strongly-typed configuration for ExerciseConfig
-    builder.Services.Configure<ExerciseConfig>(options =>
-    {
-        builder.Configuration.GetSection("ExerciseConfig").Bind(options);
-    });
+// Dynamically load all exercise configuration files
+var exerciseConfigs = Directory.GetFiles("ExConfiguration", "*.json");
+foreach (var filePath in exerciseConfigs)
+{
+    builder.Configuration.AddJsonFile(filePath, optional: true, reloadOnChange: true);
+}
 
+// Configure strongly-typed configuration for ExerciseConfig
+builder.Services.Configure<ExerciseConfig>(options =>
+{
+    builder.Configuration.GetSection("ExerciseConfig").Bind(options);
+});
 
 // Configure authentication
 builder.Services.AddMicrosoftIdentityWebAppAuthentication(builder.Configuration, "AzureAd")
     .EnableTokenAcquisitionToCallDownstreamApi(new string[] { "user.read" })
     .AddInMemoryTokenCaches();
 
-// Configure the redirect URIs
+// Configure Cookie Policy
+builder.Services.Configure<CookiePolicyOptions>(options =>
+{
+    options.MinimumSameSitePolicy = SameSiteMode.None;
+    options.Secure = CookieSecurePolicy.Always;
+    options.HttpOnly = Microsoft.AspNetCore.CookiePolicy.HttpOnlyPolicy.Always;
+});
+
+// Configure OpenID Connect Options
+builder.Services.Configure<OpenIdConnectOptions>(OpenIdConnectDefaults.AuthenticationScheme, options =>
+{
+    options.CorrelationCookie.SameSite = SameSiteMode.None;
+    options.CorrelationCookie.SecurePolicy = CookieSecurePolicy.Always;
+});
+
+// **Move the MicrosoftIdentityOptions configuration before building the app**
 builder.Services.Configure<MicrosoftIdentityOptions>(options =>
 {
     options.Events ??= new OpenIdConnectEvents();
 
     options.Events.OnRedirectToIdentityProvider = context =>
     {
-        // Override the redirect URI to always use localhost
+        // Log Redirect URI
+        tempLogger.LogInformation($"Redirecting to Identity Provider with URI: {context.ProtocolMessage.RedirectUri}");
+
         var uriBuilder = new UriBuilder(context.ProtocolMessage.RedirectUri)
         {
-            Host = "localhost", // Force localhost as the host
-            Port = 3000         // Ensure the port matches the Azure AD configuration
+            Host = "localhost",
+            Port = 3000
         };
         context.ProtocolMessage.RedirectUri = uriBuilder.ToString();
         return Task.CompletedTask;
@@ -58,7 +88,9 @@ builder.Services.Configure<MicrosoftIdentityOptions>(options =>
 
     options.Events.OnRedirectToIdentityProviderForSignOut = context =>
     {
-        // Override the post-logout redirect URI to always use localhost
+        // Log Post-Logout Redirect URI
+        tempLogger.LogInformation($"Post-logout redirect URI: {context.ProtocolMessage.PostLogoutRedirectUri}");
+
         var uriBuilder = new UriBuilder(context.ProtocolMessage.PostLogoutRedirectUri)
         {
             Host = "localhost",
@@ -69,64 +101,59 @@ builder.Services.Configure<MicrosoftIdentityOptions>(options =>
     };
 });
 
+// Build the application
+var app = builder.Build();
 
+// Obtain a logger instance from the DI container
+var logger = app.Services.GetRequiredService<ILogger<Program>>();
 
+// Middleware to handle forwarded headers (if behind a proxy)
+app.UseForwardedHeaders(new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+});
 
-    // Configure Cookie Policy
-    builder.Services.Configure<CookiePolicyOptions>(options =>
-    {
-        options.MinimumSameSitePolicy = SameSiteMode.None;
-        options.Secure = CookieSecurePolicy.Always;
-        options.HttpOnly = Microsoft.AspNetCore.CookiePolicy.HttpOnlyPolicy.Always;
-    });
+// Enable session middleware
+app.UseSession();
 
-    // Configure OpenID Connect Options
-    builder.Services.Configure<OpenIdConnectOptions>(OpenIdConnectDefaults.AuthenticationScheme, options =>
-    {
-        options.CorrelationCookie.SameSite = SameSiteMode.None;
-        options.CorrelationCookie.SecurePolicy = CookieSecurePolicy.Always;
-    });
+// Reconfigure forwarded headers if necessary
+app.UseForwardedHeaders(new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto,
+    ForwardLimit = 1, // Optional: Limits the number of forwarders to trust
+    KnownNetworks = { }, // Optional: Add known proxy IPs here if required
+    KnownProxies = { } // Optional: Add specific proxy IPs here
+});
 
-    var app = builder.Build();
+// Configure the HTTP request pipeline
+if (!app.Environment.IsDevelopment())
+{
+    app.UseExceptionHandler("/Error");
+    app.UseHsts();
+}
 
-    // Middleware to handle forwarded headers (if behind a proxy)
-    app.UseForwardedHeaders(new ForwardedHeadersOptions
-    {
-        ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
-    });
+app.UseHttpsRedirection();
+app.UseStaticFiles();
 
-    // Enable session middleware
-    app.UseSession();
+app.UseRouting();
 
-    app.UseForwardedHeaders(new ForwardedHeadersOptions
-    {
-        ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto,
-        ForwardLimit = 1, // Optional: Limits the number of forwarders to trust
-        KnownNetworks = { }, // Optional: Add known proxy IPs here if required
-        KnownProxies = { } // Optional: Add specific proxy IPs here
-    });
+// Apply Cookie Policy before Authentication
+app.UseCookiePolicy();
 
-    // Configure the HTTP request pipeline
-    if (!app.Environment.IsDevelopment())
-    {
-        app.UseExceptionHandler("/Error");
-        app.UseHsts();
-    }
+app.UseAuthentication();
+app.UseAuthorization();
 
-    app.UseHttpsRedirection();
-    app.UseStaticFiles();
+// Log configuration details after the app is built
+logger.LogInformation("Azure AD Configuration:");
+logger.LogInformation($"Instance: {builder.Configuration["AzureAd:Instance"]}");
+logger.LogInformation($"Domain: {builder.Configuration["AzureAd:Domain"]}");
+logger.LogInformation($"TenantId: {builder.Configuration["AzureAd:TenantId"]}");
+logger.LogInformation($"ClientId: {builder.Configuration["AzureAd:ClientId"]}");
+logger.LogInformation($"CallbackPath: {builder.Configuration["AzureAd:CallbackPath"]}");
 
-    app.UseRouting();
+// Map static assets and Razor Pages
+app.MapRazorPages();
+app.MapControllers(); // Map controller routes
 
-    // Apply Cookie Policy before Authentication
-    app.UseCookiePolicy();
-
-    app.UseAuthentication();
-    app.UseAuthorization();
-
-    // Map static assets and Razor Pages
-    app.MapRazorPages();
-
-    app.MapControllers(); // Map controller routes
-    
-    app.Run();
+// Start the application
+app.Run();
