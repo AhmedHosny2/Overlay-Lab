@@ -33,10 +33,44 @@
         builder.Configuration.GetSection("ExerciseConfig").Bind(options);
     });
 
-    // Configure Microsoft Identity authentication
-    builder.Services.AddMicrosoftIdentityWebAppAuthentication(builder.Configuration, "AzureAd")
-        .EnableTokenAcquisitionToCallDownstreamApi(new string[] { "user.read" })
-        .AddInMemoryTokenCaches();
+
+// Configure authentication
+builder.Services.AddMicrosoftIdentityWebAppAuthentication(builder.Configuration, "AzureAd")
+    .EnableTokenAcquisitionToCallDownstreamApi(new string[] { "user.read" })
+    .AddInMemoryTokenCaches();
+
+// Configure the redirect URIs
+builder.Services.Configure<MicrosoftIdentityOptions>(options =>
+{
+    options.Events ??= new OpenIdConnectEvents();
+
+    options.Events.OnRedirectToIdentityProvider = context =>
+    {
+        // Override the redirect URI to always use localhost
+        var uriBuilder = new UriBuilder(context.ProtocolMessage.RedirectUri)
+        {
+            Host = "localhost", // Force localhost as the host
+            Port = 3000         // Ensure the port matches the Azure AD configuration
+        };
+        context.ProtocolMessage.RedirectUri = uriBuilder.ToString();
+        return Task.CompletedTask;
+    };
+
+    options.Events.OnRedirectToIdentityProviderForSignOut = context =>
+    {
+        // Override the post-logout redirect URI to always use localhost
+        var uriBuilder = new UriBuilder(context.ProtocolMessage.PostLogoutRedirectUri)
+        {
+            Host = "localhost",
+            Port = 3000
+        };
+        context.ProtocolMessage.PostLogoutRedirectUri = uriBuilder.ToString();
+        return Task.CompletedTask;
+    };
+});
+
+
+
 
     // Configure Cookie Policy
     builder.Services.Configure<CookiePolicyOptions>(options =>
@@ -87,8 +121,8 @@
     // Apply Cookie Policy before Authentication
     app.UseCookiePolicy();
 
-    // app.UseAuthentication();
-    // app.UseAuthorization();
+    app.UseAuthentication();
+    app.UseAuthorization();
 
     // Map static assets and Razor Pages
     app.MapRazorPages();
