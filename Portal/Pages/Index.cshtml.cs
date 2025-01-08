@@ -14,7 +14,7 @@ using Microsoft.AspNetCore.Http;
 
 
 namespace Portal.Pages;
-[Authorize]
+// [Authorize]
 [IgnoreAntiforgeryToken]
 
 public class IndexModel : PageModel

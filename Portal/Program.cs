@@ -100,7 +100,6 @@ builder.Services.Configure<MicrosoftIdentityOptions>(options =>
         return Task.CompletedTask;
     };
 });
-
 // Build the application
 var app = builder.Build();
 
@@ -140,8 +139,8 @@ app.UseRouting();
 // Apply Cookie Policy before Authentication
 app.UseCookiePolicy();
 
-app.UseAuthentication();
-app.UseAuthorization();
+// app.UseAuthentication();
+// app.UseAuthorization();
 
 // Log configuration details after the app is built
 logger.LogInformation("Azure AD Configuration:");
