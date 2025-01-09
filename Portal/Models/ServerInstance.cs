@@ -81,24 +81,15 @@ namespace Portal.Models
             this.IpAddress = GetVmIpAddress();
             foreach (var field in displayFields)
             {
-                Console.WriteLine("Field: " + field);
                 var key = field.Split('.').Last();
                 if (key == "*")
                 {
                     key = field.Split('.').Reverse().Skip(1).First();
                 }
-                Console.WriteLine("Key: " + key);
                 var value = GetValueFromJson(containerInspectResponse, field);
-                Console.WriteLine("Value: " + value);
                 map[key] = value;
             }
-            foreach (var item in map)
-            {
-                Console.WriteLine("Key: " + item.Key + " Value: " + item.Value);
-            }
-
-            Console.WriteLine("ServerInstance created");
-
+         
         }
 
         public static string GetVmIpAddress()
