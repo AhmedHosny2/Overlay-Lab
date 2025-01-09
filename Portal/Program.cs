@@ -11,14 +11,12 @@ var builder = WebApplication.CreateBuilder(args);
 // Configure logging
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
-// Optionally, add other logging providers if needed
-// builder.Logging.AddDebug();
+
 
 // Create a temporary logger for configuration purposes
 using var tempLoggerFactory = LoggerFactory.Create(logging =>
 {
     logging.AddConsole();
-    // Add other logging providers if necessary
 });
 var tempLogger = tempLoggerFactory.CreateLogger<Program>();
 
@@ -26,12 +24,11 @@ var tempLogger = tempLoggerFactory.CreateLogger<Program>();
 builder.Services.AddRazorPages()
     .AddMicrosoftIdentityUI();
 
-builder.Services.AddControllers(); // Enable controllers
+builder.Services.AddControllers(); 
 
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession();
 
-// Dependency injection for DeploymentService
 builder.Services.AddSingleton<IDeploymentService, DeploymentService>();
 
 // Dynamically load all exercise configuration files
@@ -103,28 +100,23 @@ builder.Services.Configure<MicrosoftIdentityOptions>(options =>
 // Build the application
 var app = builder.Build();
 
-// Obtain a logger instance from the DI container
 var logger = app.Services.GetRequiredService<ILogger<Program>>();
 
-// Middleware to handle forwarded headers (if behind a proxy)
 app.UseForwardedHeaders(new ForwardedHeadersOptions
 {
     ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
 });
 
-// Enable session middleware
 app.UseSession();
 
-// Reconfigure forwarded headers if necessary
 app.UseForwardedHeaders(new ForwardedHeadersOptions
 {
     ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto,
-    ForwardLimit = 1, // Optional: Limits the number of forwarders to trust
-    KnownNetworks = { }, // Optional: Add known proxy IPs here if required
-    KnownProxies = { } // Optional: Add specific proxy IPs here
+    ForwardLimit = 1, 
+    KnownNetworks = { }, 
+    KnownProxies = { } 
 });
 
-// Configure the HTTP request pipeline
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error");
@@ -136,23 +128,12 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
-// Apply Cookie Policy before Authentication
 app.UseCookiePolicy();
 
-// app.UseAuthentication();
-// app.UseAuthorization();
+app.UseAuthentication();
+app.UseAuthorization();
 
-// Log configuration details after the app is built
-logger.LogInformation("Azure AD Configuration:");
-logger.LogInformation($"Instance: {builder.Configuration["AzureAd:Instance"]}");
-logger.LogInformation($"Domain: {builder.Configuration["AzureAd:Domain"]}");
-logger.LogInformation($"TenantId: {builder.Configuration["AzureAd:TenantId"]}");
-logger.LogInformation($"ClientId: {builder.Configuration["AzureAd:ClientId"]}");
-logger.LogInformation($"CallbackPath: {builder.Configuration["AzureAd:CallbackPath"]}");
-
-// Map static assets and Razor Pages
 app.MapRazorPages();
-app.MapControllers(); // Map controller routes
+app.MapControllers();
 
-// Start the application
 app.Run();
