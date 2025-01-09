@@ -37,9 +37,7 @@ namespace MyApp.Namespace
             // get DisplayFields from config file
             var exerciseConfig = _configuration.GetSection("Exercises").GetSection(exerciseName);
             _logger.LogInformation("ExerciseName: {0}", exerciseConfig);
-            // load data from json files 
             var Exercises = GetExercises();
-            // get the display fields from the config file
             var exercise = Exercises.Find(e => e.ExerciseName == exerciseName);
             if (exercise != null)
             {
@@ -52,10 +50,8 @@ namespace MyApp.Namespace
             }
             // get ip from url the url will be ip:port 
             string ip = HttpContext.Request.Host.Host;
-            _logger.LogInformation("ip: {0}", ip);
 
-
-            ServerInstance serverInstance = _deploymentService.FetchContainerDetails(_dockerClient, exerciseName, DisplayFields, _uid,ip).Result;
+            ServerInstance serverInstance = _deploymentService.FetchContainerDetails(_dockerClient, exerciseName, DisplayFields, _uid, ip).Result;
 
             Container = new Dictionary<string, string>
             {
@@ -63,7 +59,7 @@ namespace MyApp.Namespace
                 { "Image", serverInstance.Image },
                 { "Port", serverInstance.Port },
                 { "IpAddress", serverInstance.IpAddress },
-              
+
 
             };
             // add the map 
@@ -72,13 +68,9 @@ namespace MyApp.Namespace
                 Container.Add(item.Key, item.Value);
             }
 
-            // add date to httpcontext
             HttpContext.Session.SetString("InstanceId", serverInstance.ID);
             HttpContext.Session.SetString("Port", serverInstance.Port);
             HttpContext.Session.SetString("IpAddress", serverInstance.IpAddress);
-                // get ip from http context and log it 
-                var testIp = HttpContext.Session.GetString("IpAddress");
-                _logger.LogInformation("ip from session: {0}\n\n\n\n\n here yaya", testIp);
 
         }
 
@@ -101,8 +93,6 @@ namespace MyApp.Namespace
             }
             return MyExercises;
         }
-
-
 
         public static object RenderProperty(object value)
         {

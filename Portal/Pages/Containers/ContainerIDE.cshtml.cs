@@ -31,14 +31,6 @@ namespace Portal.Pages.Containers
 
         public IActionResult OnPostRun()
         {
-            // Here you can process the code as needed.
-            // **WARNING:** Executing arbitrary code can be extremely dangerous.
-            // Ensure you have proper security measures in place.
-
-            // For demonstration, we'll just return the received code and language.
-            // In a real application, you might send this to a compiler or interpreter.
-
-            // Example response:
             return new JsonResult(new { success = true, message = "Code received successfully.", code = Code, language = Language });
         }
     }

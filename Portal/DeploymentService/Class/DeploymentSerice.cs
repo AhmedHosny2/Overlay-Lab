@@ -73,12 +73,16 @@ namespace Portal.DeploymentService.Class
 
         // Create container or add user
         // each time user tries to connect/deploy to the container, this method will be called
-        public async Task<string> GetOrCreateContainerForUser(DockerClient client, string imageName, string exerciseName, string Uid, string port, string ip, bool isClient
-        , string clientPort, int MaxUsers = 10000)
+        public async Task<string> GetOrCreateContainerForUser(DockerClient client, string imageName, string exerciseName, string Uid, string port, string ip, bool? isClient = false
+        , string? clientPort = "0.0.0.0", int MaxUsers = 10000)
         {
             IList<ContainerListResponse> containersList = await client.Containers.ListContainersAsync(new ContainersListParameters
             {
             });
+            if (isClient == null)
+            {
+                isClient = false;
+            }
 
 
             // print image uid and port
@@ -128,7 +132,7 @@ namespace Portal.DeploymentService.Class
                         Console.WriteLine($"Updated users list: {updatedUsersList}");
                         await RunCommandInContainer(client, new List<string> { $"echo \"{updatedUsersList}\" > users.txt" }, container.ID);
                         //  chcek if client add the ip 
-                        if (isClient)
+                        if (isClient ?? false)
                         {
                             // checked if their are other ip addresses in the container append the  ip address with comma sepration  else create a new file
                             string ipList = await RunCommandInContainer(client, new List<string> { "cat", "/users_ip.txt" }, container.ID);
@@ -158,8 +162,8 @@ namespace Portal.DeploymentService.Class
         }
 
         // Create a new container
-        public async Task<string> InitializeContainer(DockerClient client, string imageName, string exerciseName, string Uid, string port, string ip, bool isClient, string
-        clientPort)
+        public async Task<string> InitializeContainer(DockerClient client, string imageName, string exerciseName, string Uid, string port, string ip, bool? isClient = false, string?
+        clientPort = "0.0.0.0")
         {
             await EnsureDockerImageExists(client, imageName);
             int hostPort = FindAvailablePort();
@@ -234,7 +238,7 @@ namespace Portal.DeploymentService.Class
                     // add uid to the list of users
                     await RunCommandInContainer(client, new List<string> { $"echo \"{Uid}\" >> users.txt" }, createdContainer.ID);
                     Console.WriteLine("User added to the list of users");
-                    if (isClient)
+                    if (isClient ?? false)
                     {
                         // checked if their are other ip addresses in the container append the  ip address with comma sepration  else create a new file
                         string ipList = await RunCommandInContainer(client, new List<string> { "cat", "/users_ip.txt" }, createdContainer.ID);
@@ -343,7 +347,7 @@ namespace Portal.DeploymentService.Class
             catch (Exception e)
             {
                 Console.WriteLine($"Error3 : {e.Message}");
-                return null;
+                return new ServerInstance();
             }
         }
 
