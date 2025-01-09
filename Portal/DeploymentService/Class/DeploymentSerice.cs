@@ -74,7 +74,7 @@ namespace Portal.DeploymentService.Class
         // Create container or add user
         // each time user tries to connect/deploy to the container, this method will be called
         public async Task<string> GetOrCreateContainerForUser(DockerClient client, string imageName, string exerciseName, string Uid, string port, string ip, bool? isClient = false
-        , string? clientPort = "0.0.0.0", int MaxUsers = 10000)
+        , string? clientPort = "0.0.0.0", int? MaxUsers = 10000)
         {
             IList<ContainerListResponse> containersList = await client.Containers.ListContainersAsync(new ContainersListParameters
             {

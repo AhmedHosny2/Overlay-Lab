@@ -86,7 +86,11 @@ namespace MyApp.Namespace
                     .AddJsonFile(filePath)
                     .Build();
 
-                var config = new ExerciseConfig();
+                var config = new ExerciseConfig(
+
+
+
+                );
                 fileConfig.Bind(config);
                 MyExercises.Add(config);
 

@@ -21,14 +21,14 @@ public class IndexModel : PageModel
 {
     private readonly IDeploymentService _deploymentService;
     private DockerClient _dockerClient;
-    public string UserIp { get; private set; }
+    public string UserIp { get; private set; } = string.Empty;
 
     private readonly ILogger<IndexModel> _logger;
     public string UserName { get; set; } = string.Empty;
     private string _uid = string.Empty;
-    public string UserIpAddress { get; private set; }
+    public string UserIpAddress { get; private set; } = string.Empty;
 
-    public IList<string> usersContainer;
+    public IList<string> usersContainer = new List<string>();
 
     [BindProperty]
     [Required(ErrorMessage = "Instance ID is required.")]
@@ -59,7 +59,10 @@ public class IndexModel : PageModel
                 .AddJsonFile(filePath)
                 .Build();
 
-            var config = new ExerciseConfig();
+            var config = new ExerciseConfig(
+               
+            
+            );
             fileConfig.Bind(config);
             Exercises.Add(config);
         }
