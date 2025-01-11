@@ -1,0 +1,23 @@
+Student User Stories:
+
+•	As a student, I can access the website by entering its URL in a browser.
+
+•	I can log in using my THU account.
+
+•	After logging in, I can choose to start an ex server or client type.
+
+•	I can start the server and receive its IP address and port number and all  needed container details .
+
+•	I have access to an online IDE to write client code, server code.
+
+•	I can write client\server code in any languages like Python, TypeScript, C#, Java, or Go.
+
+•	I can execute the client code to interact with the server.
+
+•	I receive responses from the server after running my code to ack that my solution is right.
+
+Admin User Stories:
+
+•	As an admin, I can view and monitor server logs.
+
+•	I can oversee and control running server instances.
