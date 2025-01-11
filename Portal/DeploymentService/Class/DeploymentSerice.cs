@@ -17,22 +17,26 @@ namespace Portal.DeploymentService.Class
 {
     public class DeploymentService : IDeploymentService
     {
-        // Empty constructor
-        public DeploymentService()
+        private readonly DockerClient _dockerClient;
+
+        // Constructor injection of DockerClient
+        public DeploymentService(DockerClient dockerClient)
         {
-        }
-        // create docker client using unix socket
-        public DockerClient CreateDockerClient()
-        {
-            DockerClient client = new DockerClientConfiguration(new Uri("unix:///var/run/docker.sock"))
-                .CreateClient();
-            return client;
+            _dockerClient = dockerClient ?? throw new ArgumentNullException(nameof(dockerClient));
         }
 
+        // create docker client using unix socket
+        // public DockerClient CreateDockerClient()
+        // {
+        //     DockerClient client = new DockerClientConfiguration(new Uri("unix:///var/run/docker.sock"))
+        //         .CreateClient();
+        //     return client;
+        // }
+
         // Check or create image
-        public async Task EnsureDockerImageExists(DockerClient client, string imageName)
+        public async Task EnsureDockerImageExists(string imageName)
         {
-            IList<ImagesListResponse> images = await client.Images.ListImagesAsync(new ImagesListParameters
+            IList<ImagesListResponse> images = await _dockerClient.Images.ListImagesAsync(new ImagesListParameters
             {
                 Filters = new Dictionary<string, IDictionary<string, bool>>
                 {
@@ -50,7 +54,7 @@ namespace Portal.DeploymentService.Class
                 Console.WriteLine($"Pulling image {imageName}");
                 try
                 {
-                    await client.Images.CreateImageAsync(
+                    await _dockerClient.Images.CreateImageAsync(
                         new ImagesCreateParameters
                         {
                             FromImage = imageName,
@@ -73,10 +77,10 @@ namespace Portal.DeploymentService.Class
 
         // Create container or add user
         // each time user tries to connect/deploy to the container, this method will be called
-        public async Task<string> GetOrCreateContainerForUser(DockerClient client, string imageName, string exerciseName, string Uid, string port, string ip, bool? isClient = false
+        public async Task<string> GetOrCreateContainerForUser(string imageName, string exerciseName, string Uid, string port, string ip, bool? isClient = false
         , string? clientPort = "0.0.0.0", int? MaxUsers = 10000)
         {
-            IList<ContainerListResponse> containersList = await client.Containers.ListContainersAsync(new ContainersListParameters
+            IList<ContainerListResponse> containersList = await _dockerClient.Containers.ListContainersAsync(new ContainersListParameters
             {
             });
             if (isClient == null)
@@ -89,7 +93,7 @@ namespace Portal.DeploymentService.Class
             if (containersList.Count == 0)
             {
                 Console.WriteLine("No containers found, create a new one");
-                return await InitializeContainer(client, imageName, exerciseName, Uid, port, ip, isClient, clientPort);
+                return await InitializeContainer(imageName, exerciseName, Uid, port, ip, isClient, clientPort);
 
             }
             bool imageCreated = false;
@@ -103,10 +107,10 @@ namespace Portal.DeploymentService.Class
                     if (container.State == "paused")
                     {
                         Console.WriteLine("Container is paused, start the container");
-                        await StartContainer(client, container.ID);
+                        await StartContainer(container.ID);
                     }
                     // get users list 
-                    string usersList = await RunCommandInContainer(client, new List<string> { "cat", "/users.txt" }, container.ID);
+                    string usersList = await RunCommandInContainer(new List<string> { "cat", "/users.txt" }, container.ID);
                     Console.WriteLine($"Users list: {usersList}");
                     // Check if the user is already in the list
                     // important must use the usersList without split here 
@@ -120,7 +124,7 @@ namespace Portal.DeploymentService.Class
                     else if (usersList.Split(',').Length >= MaxUsers)
                     {
                         Console.WriteLine("Max number of users reached");
-                        await InitializeContainer(client, imageName, exerciseName, Uid, port, ip, isClient, clientPort);
+                        await InitializeContainer(imageName, exerciseName, Uid, port, ip, isClient, clientPort);
                         return container.ID;
                     }
 
@@ -130,19 +134,19 @@ namespace Portal.DeploymentService.Class
                         // Add user to the list
                         string updatedUsersList = $"{usersList},{Uid}";
                         Console.WriteLine($"Updated users list: {updatedUsersList}");
-                        await RunCommandInContainer(client, new List<string> { $"echo \"{updatedUsersList}\" > users.txt" }, container.ID);
+                        await RunCommandInContainer(new List<string> { $"echo \"{updatedUsersList}\" > users.txt" }, container.ID);
                         //  chcek if client add the ip 
                         if (isClient ?? false)
                         {
                             // checked if their are other ip addresses in the container append the  ip address with comma sepration  else create a new file
-                            string ipList = await RunCommandInContainer(client, new List<string> { "cat", "/users_ip.txt" }, container.ID);
+                            string ipList = await RunCommandInContainer(new List<string> { "cat", "/users_ip.txt" }, container.ID);
                             if (ipList == null)
                             {
-                                await RunCommandInContainer(client, new List<string> { $"echo \"{ip},{Uid}\" > users_ip.txt" }, container.ID);
+                                await RunCommandInContainer(new List<string> { $"echo \"{ip},{Uid}\" > users_ip.txt" }, container.ID);
                             }
                             else
                             {
-                                await RunCommandInContainer(client, new List<string> { $"echo \"{ip},{Uid}\" >> users_ip.txt" }, container.ID);
+                                await RunCommandInContainer(new List<string> { $"echo \"{ip},{Uid}\" >> users_ip.txt" }, container.ID);
                             }
                         }
                         return container.ID;
@@ -155,17 +159,17 @@ namespace Portal.DeploymentService.Class
             if (!imageCreated)
             {
                 Console.WriteLine("No containers with image specs found, create a new one");
-                return await InitializeContainer(client, imageName, exerciseName, Uid, port, ip, isClient, clientPort);
+                return await InitializeContainer(imageName, exerciseName, Uid, port, ip, isClient, clientPort);
             }
 
             return string.Empty;
         }
 
         // Create a new container
-        public async Task<string> InitializeContainer(DockerClient client, string imageName, string exerciseName, string Uid, string port, string ip, bool? isClient = false, string?
+        public async Task<string> InitializeContainer(string imageName, string exerciseName, string Uid, string port, string ip, bool? isClient = false, string?
         clientPort = "0.0.0.0")
         {
-            await EnsureDockerImageExists(client, imageName);
+            await EnsureDockerImageExists(imageName);
             int hostPort = FindAvailablePort();
 
             string hostPortStr = hostPort.ToString();
@@ -227,31 +231,31 @@ namespace Portal.DeploymentService.Class
             try
             {
                 // Create the container
-                var createdContainer = await client.Containers.CreateContainerAsync(createContainerParameters);
+                var createdContainer = await _dockerClient.Containers.CreateContainerAsync(createContainerParameters);
                 Console.WriteLine($"Container created successfully with ID: {createdContainer.ID}");
 
                 // Start the container immediately after creation
-                bool started = await client.Containers.StartContainerAsync(createdContainer.ID, new ContainerStartParameters());
+                bool started = await _dockerClient.Containers.StartContainerAsync(createdContainer.ID, new ContainerStartParameters());
                 if (started)
                 {
                     Console.WriteLine("Container started successfully.");
                     // add uid to the list of users
-                    await RunCommandInContainer(client, new List<string> { $"echo \"{Uid}\" >> users.txt" }, createdContainer.ID);
+                    await RunCommandInContainer(new List<string> { $"echo \"{Uid}\" >> users.txt" }, createdContainer.ID);
                     Console.WriteLine("User added to the list of users");
                     if (isClient ?? false)
                     {
                         // checked if their are other ip addresses in the container append the  ip address with comma sepration  else create a new file
-                        string ipList = await RunCommandInContainer(client, new List<string> { "cat", "/users_ip.txt" }, createdContainer.ID);
+                        string ipList = await RunCommandInContainer(new List<string> { "cat", "/users_ip.txt" }, createdContainer.ID);
                         if (ipList == null)
                         {
-                            await RunCommandInContainer(client, new List<string> { $"echo \"{ip},{Uid}\" > users_ip.txt" }, createdContainer.ID);
+                            await RunCommandInContainer(new List<string> { $"echo \"{ip},{Uid}\" > users_ip.txt" }, createdContainer.ID);
                         }
                         else
                         {
-                            await RunCommandInContainer(client, new List<string> { $"echo \"{ip},{Uid}\" >> users_ip.txt" }, createdContainer.ID);
+                            await RunCommandInContainer(new List<string> { $"echo \"{ip},{Uid}\" >> users_ip.txt" }, createdContainer.ID);
                         }
                         // add port number in port.txt 
-                        await RunCommandInContainer(client, new List<string> { $"echo \"{clientPort}\" > port.txt" }, createdContainer.ID);
+                        await RunCommandInContainer(new List<string> { $"echo \"{clientPort}\" > port.txt" }, createdContainer.ID);
 
                     }
                 }
@@ -271,7 +275,7 @@ namespace Portal.DeploymentService.Class
         }
         // List containers
 
-        public async Task<IList<string>> ListUsersContainer(DockerClient client, string Uid)
+        public async Task<IList<string>> ListUsersContainer(string Uid)
         {
 
             IList<string> containersList = new List<string>();
@@ -281,7 +285,7 @@ namespace Portal.DeploymentService.Class
             try
             {
                 // List only running containers
-                IList<ContainerListResponse> containers = await client.Containers.ListContainersAsync(new ContainersListParameters
+                IList<ContainerListResponse> containers = await _dockerClient.Containers.ListContainersAsync(new ContainersListParameters
                 {
                     Filters = new Dictionary<string, IDictionary<string, bool>>
             {
@@ -293,7 +297,7 @@ namespace Portal.DeploymentService.Class
                 foreach (var container in containers)
                 {
                     // check if the user in the list of the container
-                    string usersList = await RunCommandInContainer(client, new List<string> { "cat", "/users.txt" }, container.ID);
+                    string usersList = await RunCommandInContainer(new List<string> { "cat", "/users.txt" }, container.ID);
                     if (usersList == null || !usersList.Contains(Uid))
                     {
                         continue;
@@ -316,18 +320,18 @@ namespace Portal.DeploymentService.Class
 
         // Get container details
         // todo only get needed details donext
-        public async Task<ServerInstance> FetchContainerDetails(DockerClient client, string exerciseName, List<string> DisplayFields, string Uid, string ip)
+        public async Task<ServerInstance> FetchContainerDetails(string exerciseName, List<string> DisplayFields, string Uid, string ip)
         {
             Console.WriteLine("Getting container details...");
             try
             {
-                string containerId = await GetContainerId(client, exerciseName);
+                string containerId = await GetContainerId(exerciseName);
 
-                var containerDetails = await client.Containers.InspectContainerAsync(containerId);
+                var containerDetails = await _dockerClient.Containers.InspectContainerAsync(containerId);
                 // convert container detials to json format
                 string containerDetailsJson = JsonConvert.SerializeObject(containerDetails, Formatting.Indented);
                 // Console.WriteLine($"Container details: {containerDetailsJson}");
-                string usersList = await RunCommandInContainer(client, new List<string> { "cat", "/users.txt" }, containerDetails.ID);
+                string usersList = await RunCommandInContainer(new List<string> { "cat", "/users.txt" }, containerDetails.ID);
                 if (usersList != null && usersList.Contains(Uid))
                 {
                     Console.WriteLine($"Container: {containerDetails.ID}, Image: {containerDetails.Image}, Users: {usersList}");
@@ -352,20 +356,20 @@ namespace Portal.DeploymentService.Class
         }
 
         // Run container
-        public async Task StartContainer(DockerClient client, string containerId)
+        public async Task StartContainer(string containerId)
         {
             Console.WriteLine("Running container...");
             try
             {
                 // check if container is paused
-                var container = await client.Containers.InspectContainerAsync(containerId);
+                var container = await _dockerClient.Containers.InspectContainerAsync(containerId);
                 if (container.State.Status == "paused")
                 {
                     Console.WriteLine("Container is paused, start the container");
-                    await client.Containers.UnpauseContainerAsync(containerId);
+                    await _dockerClient.Containers.UnpauseContainerAsync(containerId);
                 }
                 else
-                    await client.Containers.StartContainerAsync(containerId, new ContainerStartParameters());
+                    await _dockerClient.Containers.StartContainerAsync(containerId, new ContainerStartParameters());
                 Console.WriteLine("Container started successfully");
             }
             catch (Exception e)
@@ -376,16 +380,16 @@ namespace Portal.DeploymentService.Class
 
         // Execute commands in the container
         // TODO: Not all commands will work with this method
-        public async Task<string> RunCommandInContainer(DockerClient client, List<string> command, string containerId)
+        public async Task<string> RunCommandInContainer(List<string> command, string containerId)
         {
-            Console.WriteLine($"Client: {client}, Container ID: {containerId}, Command: {string.Join(" ", command)}");
+            Console.WriteLine($"Client: {_dockerClient}, Container ID: {containerId}, Command: {string.Join(" ", command)}");
             try
             {
                 // Build a single shell command string for complex operations
                 string shellCommand = command != null ? string.Join(" ", command) : string.Empty;
 
                 // Create the exec instance with the shell command
-                var execCreateResponse = await client.Exec.ExecCreateContainerAsync(containerId, new ContainerExecCreateParameters
+                var execCreateResponse = await _dockerClient.Exec.ExecCreateContainerAsync(containerId, new ContainerExecCreateParameters
                 {
                     AttachStdin = true,
                     AttachStdout = true,
@@ -396,7 +400,7 @@ namespace Portal.DeploymentService.Class
                 });
 
                 // Start the exec instance and attach to the output
-                using (var stream = await client.Exec.StartAndAttachContainerExecAsync(execCreateResponse.ID, false))
+                using (var stream = await _dockerClient.Exec.StartAndAttachContainerExecAsync(execCreateResponse.ID, false))
                 {
                     var outputBuilder = new StringBuilder();
                     var buffer = new byte[4096];
@@ -428,12 +432,12 @@ namespace Portal.DeploymentService.Class
 
         // Pause the container
         // TODO check user id in run pause and stop container
-        public async Task PauseContainer(DockerClient client, string containerId)
+        public async Task PauseContainer(string containerId)
         {
             Console.WriteLine("Pausing container...");
             try
             {
-                await client.Containers.PauseContainerAsync(containerId);
+                await _dockerClient.Containers.PauseContainerAsync(containerId);
                 Console.WriteLine("Container paused successfully");
             }
             catch (Exception e)
@@ -443,10 +447,10 @@ namespace Portal.DeploymentService.Class
         }
 
 
-        public async Task RemoveUserOrPauseContainer(DockerClient client, string ContainerId, string Uid)
+        public async Task RemoveUserOrPauseContainer(string ContainerId, string Uid)
         {
             // get users list in this container 
-            var usersList = await RunCommandInContainer(client, new List<string> { "cat", "/users.txt" }, ContainerId);
+            var usersList = await RunCommandInContainer(new List<string> { "cat", "/users.txt" }, ContainerId);
             // remove user from the list
             // trim anyspace 
 
@@ -460,7 +464,7 @@ namespace Portal.DeploymentService.Class
 
 
             // update the list of users
-            await RunCommandInContainer(client, new List<string> { $"echo \"{string.Join(",", updatedUsersList)}\" > users.txt" }, ContainerId);
+            await RunCommandInContainer(new List<string> { $"echo \"{string.Join(",", updatedUsersList)}\" > users.txt" }, ContainerId);
             Console.WriteLine("User removed from container's  list of users");
             // print new list 
             Console.WriteLine($"Updated users list: {string.Join(",", updatedUsersList)}");
@@ -468,7 +472,7 @@ namespace Portal.DeploymentService.Class
             //TODO we can either stop the container to save computational resources or pause it to save the state of the container and better UX
             if (updatedUsersList.Count == 0)
             {
-                await PauseContainer(client, ContainerId);
+                await PauseContainer(ContainerId);
                 Console.WriteLine("Container paused successfully");
             }
             else
@@ -479,9 +483,9 @@ namespace Portal.DeploymentService.Class
         }
         // get container id from container name
 
-        public async Task<string> GetContainerId(DockerClient client, string containerName)
+        public async Task<string> GetContainerId(string containerName)
         {
-            IList<ContainerListResponse> containersList = await client.Containers.ListContainersAsync(new ContainersListParameters
+            IList<ContainerListResponse> containersList = await _dockerClient.Containers.ListContainersAsync(new ContainersListParameters
             {
             });
             foreach (var container in containersList)
@@ -503,9 +507,9 @@ namespace Portal.DeploymentService.Class
             // log inputs 
             Console.WriteLine($"Client evaluation for uid: {uid} and container id: {container_id} mn kalb el ClientExercisePassed");
             // get container id from container name
-            DockerClient client = CreateDockerClient();
+
             // remove user's ip and uid from users_ip.txt
-            string ipList = await RunCommandInContainer(client, new List<string> { "cat", "/users_ip.txt" }, container_id);
+            string ipList = await RunCommandInContainer(new List<string> { "cat", "/users_ip.txt" }, container_id);
             if (ipList != null)
             {
                 // where users ip and uid are separated by comma
@@ -516,12 +520,12 @@ namespace Portal.DeploymentService.Class
                     .Where(x => !string.IsNullOrWhiteSpace(x)) // Remove spaces or empty lines
                     .Select(x => x.Trim()) // Optional: Remove extra spaces around entries
                     .ToList();
-                await RunCommandInContainer(client, new List<string> { $"echo \"{string.Join("\n", updatedIpList)}\" > users_ip.txt" }, container_id);
+                await RunCommandInContainer(new List<string> { $"echo \"{string.Join("\n", updatedIpList)}\" > users_ip.txt" }, container_id);
                 Console.WriteLine("User removed from container's list of ip addresses");
                 Console.WriteLine($"Updated ip list: {string.Join("\n", updatedIpList)}");
             }
             // remove user from the list of users
-            await RemoveUserOrPauseContainer(client, container_id, uid);
+            await RemoveUserOrPauseContainer(container_id, uid);
             return "Client exercise passed successfully";
 
         }

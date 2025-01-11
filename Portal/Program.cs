@@ -5,6 +5,7 @@ using Microsoft.Identity.Web.UI;
 using Portal.DeploymentService.Class;
 using Portal.DeploymentService.Interface;
 using Microsoft.Extensions.Logging;
+using Docker.DotNet;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,10 +25,18 @@ var tempLogger = tempLoggerFactory.CreateLogger<Program>();
 builder.Services.AddRazorPages()
     .AddMicrosoftIdentityUI();
 
-builder.Services.AddControllers(); 
+builder.Services.AddControllers();
 
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession();
+
+// Register DockerClient as a singleton
+builder.Services.AddSingleton<DockerClient>(sp =>
+
+{
+    return new DockerClientConfiguration(new Uri("unix:///var/run/docker.sock"))
+        .CreateClient();
+});
 
 builder.Services.AddSingleton<IDeploymentService, DeploymentService>();
 
@@ -112,9 +121,9 @@ app.UseSession();
 app.UseForwardedHeaders(new ForwardedHeadersOptions
 {
     ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto,
-    ForwardLimit = 1, 
-    KnownNetworks = { }, 
-    KnownProxies = { } 
+    ForwardLimit = 1,
+    KnownNetworks = { },
+    KnownProxies = { }
 });
 
 if (!app.Environment.IsDevelopment())

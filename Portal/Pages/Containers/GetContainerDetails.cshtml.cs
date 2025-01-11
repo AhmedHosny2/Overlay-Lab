@@ -1,25 +1,29 @@
 using System.ComponentModel.DataAnnotations;
-using Docker.DotNet;
-using Microsoft.AspNetCore.Html;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Newtonsoft.Json;
 using Portal.DeploymentService.Interface;
 using Portal.Models;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+using System.Collections.Generic;
+using System.IO;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Html;
 
 namespace MyApp.Namespace
 {
     public class GetContainerDetailsModel : PageModel
     {
-
-
         private readonly IDeploymentService _deploymentService;
         private readonly IConfiguration _configuration;
         private readonly ILogger<GetContainerDetailsModel> _logger;
-        private DockerClient _dockerClient;
+
         public string ExerciseName { get; set; }
         public List<string> DisplayFields { get; set; }
         public IDictionary<string, string> Container { get; set; }
+
         private string _uid = string.Empty;
 
         public GetContainerDetailsModel(IDeploymentService deploymentService, IConfiguration configuration, ILogger<GetContainerDetailsModel> logger)
@@ -27,31 +31,33 @@ namespace MyApp.Namespace
             _deploymentService = deploymentService;
             _configuration = configuration;
             _logger = logger;
-            _dockerClient = _deploymentService.CreateDockerClient();
-
         }
 
-        public void OnGet(string exerciseName)
+        public async Task OnGetAsync(string exerciseName)
         {
             _uid = User.FindFirst("uid")?.Value ?? string.Empty;
-            // get DisplayFields from config file
-            var exerciseConfig = _configuration.GetSection("Exercises").GetSection(exerciseName);
-            _logger.LogInformation("ExerciseName: {0}", exerciseConfig);
-            var Exercises = GetExercises();
-            var exercise = Exercises.Find(e => e.ExerciseName == exerciseName);
+
+            // Get DisplayFields from config file
+            var exerciseConfigSection = _configuration.GetSection("Exercises").GetSection(exerciseName);
+            _logger.LogInformation("ExerciseName: {ExerciseName}", exerciseConfigSection.Value);
+
+            var exercises = GetExercises();
+            var exercise = exercises.Find(e => e.ExerciseName == exerciseName);
             if (exercise != null)
             {
                 DisplayFields = exercise.DisplayFields;
             }
             else
             {
-                _logger.LogWarning("Exercise with name {0} not found.", exerciseName);
+                _logger.LogWarning("Exercise with name {ExerciseName} not found.", exerciseName);
                 DisplayFields = new List<string>();
             }
-            // get ip from url the url will be ip:port 
+
+            // Get IP from URL (ip:port)
             string ip = HttpContext.Request.Host.Host;
 
-            ServerInstance serverInstance = _deploymentService.FetchContainerDetails(_dockerClient, exerciseName, DisplayFields, _uid, ip).Result;
+            // Fetch container details
+            var serverInstance = await _deploymentService.FetchContainerDetails(exerciseName, DisplayFields, _uid, ip);
 
             Container = new Dictionary<string, string>
             {
@@ -59,10 +65,9 @@ namespace MyApp.Namespace
                 { "Image", serverInstance.Image },
                 { "Port", serverInstance.Port },
                 { "IpAddress", serverInstance.IpAddress },
-
-
             };
-            // add the map 
+
+            // Add the map
             foreach (var item in serverInstance.map)
             {
                 Container.Add(item.Key, item.Value);
@@ -71,13 +76,11 @@ namespace MyApp.Namespace
             HttpContext.Session.SetString("InstanceId", serverInstance.ID);
             HttpContext.Session.SetString("Port", serverInstance.Port);
             HttpContext.Session.SetString("IpAddress", serverInstance.IpAddress);
-
         }
 
         public List<ExerciseConfig> GetExercises()
         {
-            List<ExerciseConfig> MyExercises = new();
-
+            var myExercises = new List<ExerciseConfig>();
             var exerciseConfigs = Directory.GetFiles("ExConfiguration", "*.json");
 
             foreach (var filePath in exerciseConfigs)
@@ -86,16 +89,12 @@ namespace MyApp.Namespace
                     .AddJsonFile(filePath)
                     .Build();
 
-                var config = new ExerciseConfig(
-
-
-
-                );
+                var config = new ExerciseConfig();
                 fileConfig.Bind(config);
-                MyExercises.Add(config);
-
+                myExercises.Add(config);
             }
-            return MyExercises;
+
+            return myExercises;
         }
 
         public static object RenderProperty(object value)
@@ -158,6 +157,5 @@ namespace MyApp.Namespace
                 return value.ToString();
             }
         }
-
     }
 }
