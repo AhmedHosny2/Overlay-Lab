@@ -72,7 +72,7 @@ Run a simple Docker container to test that everything is working:
 
 ```bash
 # Run the Docker container
-docker run -p 5005:5005 ahmedyh1/time_app:arm64
+docker run -p 5005:5005 ahmedyh1/time_app
 
 # Test the running container
 curl http://127.0.0.1:5005
