@@ -132,12 +132,13 @@ namespace Portal.Pages
             }
         }
 
-        private void InitializeUserContext()
+        private  void InitializeUserContext()
         {
             _uid = User.FindFirst("uid")?.Value ?? string.Empty;
             UserName = User.FindFirst("name")?.Value?.Split(',').FirstOrDefault()?.Split(' ').FirstOrDefault() ?? string.Empty;
             Exercises = LoadExercises();
             UserIpAddress = GetUserIpAddress();
+
         }
 
         private List<ExerciseConfig> LoadExercises()

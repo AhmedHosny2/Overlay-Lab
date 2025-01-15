@@ -12,6 +12,7 @@ using Portal.Models;
 using Newtonsoft.Json;
 using System.Net.Sockets;
 using System.Net;
+using System.Text.RegularExpressions;
 
 namespace Portal.DeploymentService.Class
 {
@@ -382,11 +383,22 @@ namespace Portal.DeploymentService.Class
         // TODO: Not all commands will work with this method
         public async Task<string> RunCommandInContainer(List<string> command, string containerId)
         {
+
+
             Console.WriteLine($"Client: {_dockerClient}, Container ID: {containerId}, Command: {string.Join(" ", command)}");
             try
             {
+
                 // Build a single shell command string for complex operations
                 string shellCommand = command != null ? string.Join(" ", command) : string.Empty;
+                // allow only write, read and create .txt files only anything else throw an exception
+                // Validate the command to ensure it only interacts with .txt files
+                if (!IsTxtFileOperationValid(shellCommand))
+                {
+                    throw new Exception("Command validation failed: Only .txt file operations (read, write, create) are allowed.");
+                }
+
+
 
                 // Create the exec instance with the shell command
                 var execCreateResponse = await _dockerClient.Exec.ExecCreateContainerAsync(containerId, new ContainerExecCreateParameters
@@ -431,7 +443,6 @@ namespace Portal.DeploymentService.Class
         }
 
         // Pause the container
-        // TODO check user id in run pause and stop container
         public async Task PauseContainer(string containerId)
         {
             Console.WriteLine("Pausing container...");
@@ -541,6 +552,31 @@ namespace Portal.DeploymentService.Class
             {
                 listener.Stop();
             }
+        }private bool IsTxtFileOperationValid(string command)
+{
+    // Remove extra spaces and newlines for consistent validation
+    command = command.Trim();
+
+    // Define allowed operations for .txt files
+    var allowedPatterns = new List<string>
+    {
+        @"^cat\s+[\s\S]+\.txt$",                // Read a .txt file
+        @"^echo\s+[\s\S]+\s+>\s+[\w/]+\.txt$",  // Create/overwrite a .txt file
+        @"^echo\s+[\s\S]+\s+>>\s+[\w/]+\.txt$", // Append to a .txt file
+        @"^ls\s+[\w/]+\.txt$",                   // List .txt files (optional)
+    };
+    
+    
+    // Check if the command matches any allowed pattern
+    foreach (var pattern in allowedPatterns)
+    {
+        if (Regex.IsMatch(command, pattern))
+        {
+            return true;
         }
+    }
+
+    return false; // Command does not match allowed operations
+}
     }
 }
