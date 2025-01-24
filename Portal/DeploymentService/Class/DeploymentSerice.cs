@@ -389,18 +389,11 @@ namespace Portal.DeploymentService.Class
             try
             {
 
-                // Build a single shell command string for complex operations
                 string shellCommand = command != null ? string.Join(" ", command) : string.Empty;
-                // allow only write, read and create .txt files only anything else throw an exception
-                // Validate the command to ensure it only interacts with .txt files
                 if (!IsTxtFileOperationValid(shellCommand))
                 {
                     throw new Exception("Command validation failed: Only .txt file operations (read, write, create) are allowed.");
                 }
-
-
-
-                // Create the exec instance with the shell command
                 var execCreateResponse = await _dockerClient.Exec.ExecCreateContainerAsync(containerId, new ContainerExecCreateParameters
                 {
                     AttachStdin = true,
@@ -408,16 +401,12 @@ namespace Portal.DeploymentService.Class
                     AttachStderr = true,
                     Tty = false,
                     WorkingDir = "/",
-                    Cmd = new List<string> { "sh", "-c", shellCommand } // Use 'sh -c' to execute the shell command
+                    Cmd = new List<string> { "sh", "-c", shellCommand } 
                 });
-
-                // Start the exec instance and attach to the output
                 using (var stream = await _dockerClient.Exec.StartAndAttachContainerExecAsync(execCreateResponse.ID, false))
                 {
                     var outputBuilder = new StringBuilder();
                     var buffer = new byte[4096];
-
-                    // Read the output asynchronously
                     while (true)
                     {
                         var count = await stream.ReadOutputAsync(buffer, 0, buffer.Length, CancellationToken.None);
@@ -431,7 +420,6 @@ namespace Portal.DeploymentService.Class
 
                     Console.WriteLine("Command output:");
                     Console.WriteLine(outputBuilder);
-
                     return outputBuilder.ToString();
                 }
             }
@@ -552,31 +540,33 @@ namespace Portal.DeploymentService.Class
             {
                 listener.Stop();
             }
-        }private bool IsTxtFileOperationValid(string command)
-{
-    // Remove extra spaces and newlines for consistent validation
-    command = command.Trim();
 
-    // Define allowed operations for .txt files
-    var allowedPatterns = new List<string>
-    {
-        @"^cat\s+[\s\S]+\.txt$",                // Read a .txt file
-        @"^echo\s+[\s\S]+\s+>\s+[\w/]+\.txt$",  // Create/overwrite a .txt file
-        @"^echo\s+[\s\S]+\s+>>\s+[\w/]+\.txt$", // Append to a .txt file
-        @"^ls\s+[\w/]+\.txt$",                   // List .txt files (optional)
-    };
-    
-    
-    // Check if the command matches any allowed pattern
-    foreach (var pattern in allowedPatterns)
-    {
-        if (Regex.IsMatch(command, pattern))
-        {
-            return true;
         }
-    }
+        private bool IsTxtFileOperationValid(string command)
+        {
+            // Remove extra spaces and newlines for consistent validation
+            command = command.Trim();
 
-    return false; // Command does not match allowed operations
-}
+            // Define allowed operations for .txt files
+            var allowedPatterns = new List<string>
+                {
+                    @"^cat\s+[\s\S]+\.txt$",                // Read a .txt file
+                    @"^echo\s+[\s\S]+\s+>\s+[\w/]+\.txt$",  // Create/overwrite a .txt file
+                    @"^echo\s+[\s\S]+\s+>>\s+[\w/]+\.txt$", // Append to a .txt file
+                    @"^ls\s+[\w/]+\.txt$",                   // List .txt files (optional)
+                };
+
+
+            // Check if the command matches any allowed pattern
+            foreach (var pattern in allowedPatterns)
+            {
+                if (Regex.IsMatch(command, pattern))
+                {
+                    return true;
+                }
+            }
+
+            return false; // Command does not match allowed operations
+        }
     }
 }
