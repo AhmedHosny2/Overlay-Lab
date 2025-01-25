@@ -62,6 +62,7 @@ namespace MyApp.Namespace
             if((bool)exercise.ClientSide)
             {
                 portNumber = exercise.ClientPort;
+                ip = '0.0.0.0';
             }
             Container = new Dictionary<string, string>
             {
