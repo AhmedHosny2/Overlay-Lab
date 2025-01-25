@@ -1,0 +1,12 @@
+{
+  "ExerciseName": "Get-Time-CLient",
+  "ExerciseReqConnectionType": "REST",
+  "ExerciseTile": "Simple HTTP Get Request simulation Server Side",
+  "ExerciseDescription": "This exercise will help you to understand how to create a server that will respond to a get request with the current time",
+  "ExerciseDifficulty": "1",
+  "DockerImage": "ahmedyh1/user-ip-checker",
+  "port": "5050",
+  "DisplayFields": ["Name", "State.Status", "Config.Hostname"],
+  "ClientSide": true,
+  "ClientPort": "5009"
+}

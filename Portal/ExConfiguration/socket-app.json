@@ -1,0 +1,22 @@
+  {
+    "ExerciseName": "socket-app",
+
+    "ExerciseReqConnectionType": "socket",
+
+    "ExerciseTile": "Simple Socket Connection",
+
+    "ExerciseDescription": "This exercise will help you to understand how does a socket connection work",
+
+    "ExerciseDifficulty": "1",
+
+    "DockerImage": "ahmedyh1/socket_app",
+
+    "port": "5007",
+
+    "DisplayFields": [
+      "Name",
+      "State.Status",
+      "Config.Hostname",
+      "NetworkSettings.Networks.bridge.NetworkID"
+    ]
+  }
