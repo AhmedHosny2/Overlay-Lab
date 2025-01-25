@@ -54,9 +54,9 @@ builder.Services.Configure<ExerciseConfig>(options =>
 });
 
 // Configure authentication
-builder.Services.AddMicrosoftIdentityWebAppAuthentication(builder.Configuration, "AzureAd")
-    .EnableTokenAcquisitionToCallDownstreamApi(new string[] { "user.read" })
-    .AddInMemoryTokenCaches();
+// builder.Services.AddMicrosoftIdentityWebAppAuthentication(builder.Configuration, "AzureAd")
+//     .EnableTokenAcquisitionToCallDownstreamApi(new string[] { "user.read" })
+//     .AddInMemoryTokenCaches();
 
 // Configure Cookie Policy
 builder.Services.Configure<CookiePolicyOptions>(options =>
@@ -67,45 +67,47 @@ builder.Services.Configure<CookiePolicyOptions>(options =>
 });
 
 // Configure OpenID Connect Options
-builder.Services.Configure<OpenIdConnectOptions>(OpenIdConnectDefaults.AuthenticationScheme, options =>
-{
-    options.CorrelationCookie.SameSite = SameSiteMode.None;
-    options.CorrelationCookie.SecurePolicy = CookieSecurePolicy.Always;
-});
+// builder.Services.Configure<OpenIdConnectOptions>(OpenIdConnectDefaults.AuthenticationScheme, options =>
+// {
+//     options.CorrelationCookie.SameSite = SameSiteMode.None;
+//     options.CorrelationCookie.SecurePolicy = CookieSecurePolicy.Always;
+// });
 
 // **Move the MicrosoftIdentityOptions configuration before building the app**
-builder.Services.Configure<MicrosoftIdentityOptions>(options =>
-{
-    options.Events ??= new OpenIdConnectEvents();
+// builder.Services.Configure<MicrosoftIdentityOptions>(options =>
+// {
+//     options.Events ??= new OpenIdConnectEvents();
 
-    options.Events.OnRedirectToIdentityProvider = context =>
-    {
-        // Log Redirect URI
-        tempLogger.LogInformation($"Redirecting to Identity Provider with URI: {context.ProtocolMessage.RedirectUri}");
+//     options.Events.OnRedirectToIdentityProvider = context =>
+//     {
+//         // Log Redirect URI
+//         tempLogger.LogInformation($"Redirecting to Identity Provider with URI: {context.ProtocolMessage.RedirectUri}");
 
-        var uriBuilder = new UriBuilder(context.ProtocolMessage.RedirectUri)
-        {
-            Host = "localhost",
-            Port = 3000
-        };
-        context.ProtocolMessage.RedirectUri = uriBuilder.ToString();
-        return Task.CompletedTask;
-    };
+//         var uriBuilder = new UriBuilder(context.ProtocolMessage.RedirectUri)
+//         {
+//             Host = "localhost",
+//             Port = 3000
+//         };
+//         context.ProtocolMessage.RedirectUri = uriBuilder.ToString();
+//         return Task.CompletedTask;
+//     };
 
-    options.Events.OnRedirectToIdentityProviderForSignOut = context =>
-    {
-        // Log Post-Logout Redirect URI
-        tempLogger.LogInformation($"Post-logout redirect URI: {context.ProtocolMessage.PostLogoutRedirectUri}");
+//     options.Events.OnRedirectToIdentityProviderForSignOut = context =>
+//     {
+//         // Log Post-Logout Redirect URI
+//         tempLogger.LogInformation($"Post-logout redirect URI: {context.ProtocolMessage.PostLogoutRedirectUri}");
 
-        var uriBuilder = new UriBuilder(context.ProtocolMessage.PostLogoutRedirectUri)
-        {
-            Host = "localhost",
-            Port = 3000
-        };
-        context.ProtocolMessage.PostLogoutRedirectUri = uriBuilder.ToString();
-        return Task.CompletedTask;
-    };
-});
+//         var uriBuilder = new UriBuilder(context.ProtocolMessage.PostLogoutRedirectUri)
+//         {
+//             Host = "localhost",
+//             Port = 3000
+//         };
+//         context.ProtocolMessage.PostLogoutRedirectUri = uriBuilder.ToString();
+//         return Task.CompletedTask;
+//     };
+// });
+
+
 // Build the application
 var app = builder.Build();
 
@@ -139,8 +141,8 @@ app.UseRouting();
 
 app.UseCookiePolicy();
 
-app.UseAuthentication();
-app.UseAuthorization();
+// app.UseAuthentication();
+// app.UseAuthorization();
 
 app.MapRazorPages();
 app.MapControllers();

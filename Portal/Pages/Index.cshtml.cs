@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 
 namespace Portal.Pages
 {
-    [Authorize]
+    // [Authorize]
     [IgnoreAntiforgeryToken]
     public class IndexModel : PageModel
     {
