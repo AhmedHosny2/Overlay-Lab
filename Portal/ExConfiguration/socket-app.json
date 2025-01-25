@@ -3,7 +3,7 @@
 
     "ExerciseReqConnectionType": "socket",
 
-    "ExerciseTile": "Simple Socket Connection",
+    "ExerciseTile": "Socket Connection",
 
     "ExerciseDescription": "This exercise will help you to understand how does a socket connection work",
 

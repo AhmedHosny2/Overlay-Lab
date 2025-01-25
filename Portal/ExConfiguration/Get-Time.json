@@ -1,7 +1,7 @@
 {
   "ExerciseName": "Get-Time",
   "ExerciseReqConnectionType": "REST",
-  "ExerciseTile": "Simple HTTP Get Request simulation",
+  "ExerciseTile": "HTTP Get Request Client side",
   "ExerciseDescription": "This exercise will help you to understand how to send a get the and receive a response from a server including the current time",
   "ExerciseDifficulty": "1",
   "DockerImage": "ahmedyh1/time_app",
