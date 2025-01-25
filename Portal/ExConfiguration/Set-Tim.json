@@ -5,5 +5,6 @@
   "ExerciseDescription": "This exercise will help you to understand how to send a Post req with body the and receive a response from a server including the status code and new time",
   "ExerciseDifficulty": "1",
   "DockerImage": "ahmedyh1/set_time_app",
-  "port": "5010"
+  "port": "5010",
+  "ClientSide": false
 }
