@@ -54,11 +54,12 @@ namespace MyApp.Namespace
             }
 
             // Get IP from URL (ip:port)
-            string ip = HttpContext.Request.Host.Host;
 
             // Fetch container details
             var serverInstance = await _deploymentService.FetchContainerDetails(exerciseName, DisplayFields, _uid, ip);
             var portNumber = serverInstance.Port;
+            string ip = serverInstance.IpAddress;
+
             if ((bool)exercise.ClientSide)
             {
                 portNumber = exercise.ClientPort;
@@ -69,7 +70,7 @@ namespace MyApp.Namespace
                 { "ID", serverInstance.ID },
                 { "Image", serverInstance.Image },
                 { "Port", portNumber },
-                { "IpAddress", ip },
+                { "IpAddress",  ip},
                 {"utils", exercise.utils}
 
             };
