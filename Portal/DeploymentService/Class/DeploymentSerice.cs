@@ -13,6 +13,7 @@ using Newtonsoft.Json;
 using System.Net.Sockets;
 using System.Net;
 using System.Text.RegularExpressions;
+using System.Net.NetworkInformation;
 
 namespace Portal.DeploymentService.Class
 {
@@ -267,10 +268,17 @@ namespace Portal.DeploymentService.Class
                             {
                                 Variables[variable.Key] = Guid.NewGuid().ToString();
                             }
+                            if (variable.Key == "host")
+                            {
+                                Variables[variable.Key] = GetVmIpAddress();
+                            }
                         }
 
                         // add the dectioanry to the container txt file 
                         await RunCommandInContainer(new List<string> { $"echo \"{JsonConvert.SerializeObject(Variables)}\" > variables.txt" }, createdContainer.ID);
+                        // add port number in port.txt 
+                        await RunCommandInContainer(new List<string> { $"echo \"{clientPort}\" > port.txt" }, createdContainer.ID);
+
                     }
                     if (isClient ?? false)
                     {
@@ -284,8 +292,6 @@ namespace Portal.DeploymentService.Class
                         {
                             await RunCommandInContainer(new List<string> { $"echo \"{ip},{Uid}\" >> users_ip.txt" }, createdContainer.ID);
                         }
-                        // add port number in port.txt 
-                        await RunCommandInContainer(new List<string> { $"echo \"{clientPort}\" > port.txt" }, createdContainer.ID);
 
                     }
                 }
@@ -589,6 +595,29 @@ namespace Portal.DeploymentService.Class
             }
 
             return false; // Command does not match allowed operations
+        }
+
+
+        public static string GetVmIpAddress()
+        {
+            foreach (var networkInterface in NetworkInterface.GetAllNetworkInterfaces())
+
+
+
+            {
+                if (networkInterface.OperationalStatus == OperationalStatus.Up)
+                {
+                    foreach (var ipAddress in networkInterface.GetIPProperties().UnicastAddresses)
+                    {
+                        if (ipAddress.Address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork &&
+                            ipAddress.Address.ToString().StartsWith("10."))
+                        {
+                            return ipAddress.Address.ToString();
+                        }
+                    }
+                }
+            }
+            return "No VM IP starting with 10. found.";
         }
     }
 }

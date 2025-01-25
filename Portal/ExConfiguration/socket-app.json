@@ -19,5 +19,8 @@
       "Config.Hostname",
       "NetworkSettings.Networks.bridge.NetworkID"
     ],
-    "ClientSide": false
+    "ClientSide": false,
+    "Variables": {
+      "host": ""
+    }
   }
