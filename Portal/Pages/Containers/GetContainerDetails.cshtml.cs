@@ -69,7 +69,7 @@ namespace MyApp.Namespace
                 { "ID", serverInstance.ID },
                 { "Image", serverInstance.Image },
                 { "Port", portNumber },
-                { "IpAddress", serverInstance.IpAddress },
+                { "IpAddress", "0.0.0.0" },
             };
 
             // Add the map
