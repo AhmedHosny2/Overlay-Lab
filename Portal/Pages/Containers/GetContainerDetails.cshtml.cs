@@ -58,12 +58,16 @@ namespace MyApp.Namespace
 
             // Fetch container details
             var serverInstance = await _deploymentService.FetchContainerDetails(exerciseName, DisplayFields, _uid, ip);
-
+            var portNumber = serverInstance.Port;
+            if((bool)exercise.ClientSide)
+            {
+                portNumber = exercise.ClientPort;
+            }
             Container = new Dictionary<string, string>
             {
                 { "ID", serverInstance.ID },
                 { "Image", serverInstance.Image },
-                { "Port", serverInstance.Port },
+                { "Port", portNumber },
                 { "IpAddress", serverInstance.IpAddress },
             };
 
