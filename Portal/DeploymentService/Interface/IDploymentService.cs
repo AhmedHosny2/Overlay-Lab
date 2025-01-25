@@ -13,7 +13,7 @@ namespace Portal.DeploymentService.Interface
         public Task<string> GetOrCreateContainerForUser(string ImageName, string exerciseName, string Uid, string port, string ip, bool? isCLient, string? clientPort, int? MaxUsers, Dictionary<string,string> Variables);
         public Task<string> InitializeContainer(string ImageName, string exerciseName, string Uid, string port, string ip, bool? isCLient, string? clientPort, Dictionary<string,string> Variables);
         public Task<IList<string>> ListUsersContainer(string Uid);
-        public Task<ServerInstance> FetchContainerDetails(string exerciseName, List<string> DisplayFields, string Uid, string ip);
+        public Task<ServerInstance> FetchContainerDetails(string exerciseName, List<string> DisplayFields, string Uid);
         public Task StartContainer(string ContainerId);
 
         public Task<string> RunCommandInContainer(List<string> Command, string ContainerId);

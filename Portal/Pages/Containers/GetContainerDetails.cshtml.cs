@@ -56,7 +56,7 @@ namespace MyApp.Namespace
             // Get IP from URL (ip:port)
 
             // Fetch container details
-            var serverInstance = await _deploymentService.FetchContainerDetails(exerciseName, DisplayFields, _uid, ip);
+            var serverInstance = await _deploymentService.FetchContainerDetails(exerciseName, DisplayFields, _uid);
             var portNumber = serverInstance.Port;
             string ip = serverInstance.IpAddress;
 

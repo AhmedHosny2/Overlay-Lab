@@ -352,7 +352,7 @@ namespace Portal.DeploymentService.Class
 
         // Get container details
         // todo only get needed details donext
-        public async Task<ServerInstance> FetchContainerDetails(string exerciseName, List<string> DisplayFields, string Uid, string ip)
+        public async Task<ServerInstance> FetchContainerDetails(string exerciseName, List<string> DisplayFields, string Uid)
         {
             Console.WriteLine("Getting container details...");
             try
@@ -373,7 +373,7 @@ namespace Portal.DeploymentService.Class
                     Console.WriteLine("User not in the list");
                     throw new Exception("User not in the list");
                 }
-                ServerInstance container = new ServerInstance(containerDetailsJson, DisplayFields, ip);
+                ServerInstance container = new ServerInstance(containerDetailsJson, DisplayFields);
 
                 // Additional processing can be done here if needed
 

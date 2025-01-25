@@ -27,7 +27,7 @@ namespace Portal.Models
         {
         }
 
-        public ServerInstance(string containerInspectResponse, List<string> displayFields, string ip)
+        public ServerInstance(string containerInspectResponse, List<string> displayFields)
         {
             if (containerInspectResponse == null || displayFields == null)
                 return;

@@ -83,7 +83,7 @@ namespace Portal.Pages
 
             try
             {
-                var containerDetails = await _deploymentService.FetchContainerDetails(exerciseName, new List<string> { "ID" }, _uid, UserIpAddress);
+                var containerDetails = await _deploymentService.FetchContainerDetails(exerciseName, new List<string> { "ID" }, _uid);
                 var instanceId = containerDetails.ID;
 
                 await _deploymentService.RemoveUserOrPauseContainer(instanceId, _uid);
