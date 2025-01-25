@@ -181,7 +181,7 @@ namespace Portal.DeploymentService.Class
             // Define port bindings to map host port to container port
             var hostConfig = new HostConfig
             {
-
+                NetworkMode = "host",
                 PortBindings = new Dictionary<string, IList<PortBinding>>
         {
             {
@@ -242,6 +242,8 @@ namespace Portal.DeploymentService.Class
                     Console.WriteLine("Container started successfully.");
                     // add uid to the list of users
                     await RunCommandInContainer(new List<string> { $"echo \"{Uid}\" >> users.txt" }, createdContainer.ID);
+                    string containerId = createdContainer.ID;
+                    await RunCommandInContainer(new List<string> { $"echo \"{containerId}\" > containerid.txt" }, containerId);
                     Console.WriteLine("User added to the list of users");
                     if (isClient ?? false)
                     {
