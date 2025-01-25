@@ -15,13 +15,13 @@ namespace Portal.DeploymentService.Controllers
         }
 
         // GET: api/ClientEvaluation/{uid}/{container_id}
-        [HttpGet("{uid}/{container_id}")]
-        public IActionResult ClientEvaluation(string uid, string container_id)
+        [HttpGet("{uid}/{container_id}/{ip}")]
+        public IActionResult ClientEvaluation(string uid, string container_id,string ip)
         {
             try
             {
-                Console.WriteLine("Client evaluation for uid: {0} and container id: {1}", uid, container_id);
-                _deploymentService.ClientExercisePassed(uid, container_id);
+                Console.WriteLine("Client evaluation for uid: {0} and container id: {1} ip : {2} ", uid, container_id,ip);
+                _deploymentService.ClientExercisePassed(uid, container_id, ip);
                 Console.WriteLine("Client exercise passed successfully.");
                 return Ok(new { Message = "Client exercise passed successfully.", Uid = uid, ContainerId = container_id });
             }

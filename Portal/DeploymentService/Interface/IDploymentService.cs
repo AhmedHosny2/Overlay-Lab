@@ -19,6 +19,6 @@ namespace Portal.DeploymentService.Interface
         public Task<string> RunCommandInContainer(List<string> Command, string ContainerId);
         public Task PauseContainer(string ContainerId);
         public Task RemoveUserOrPauseContainer(string ContainerId, string Uid);
-        public Task<string> ClientExercisePassed(string uid, string container_id);
+        public Task<string> ClientExercisePassed(string uid, string container_id, string ip);
     }
 }

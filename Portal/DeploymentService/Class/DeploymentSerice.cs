@@ -401,7 +401,7 @@ namespace Portal.DeploymentService.Class
                     AttachStderr = true,
                     Tty = false,
                     WorkingDir = "/",
-                    Cmd = new List<string> { "sh", "-c", shellCommand } 
+                    Cmd = new List<string> { "sh", "-c", shellCommand }
                 });
                 using (var stream = await _dockerClient.Exec.StartAndAttachContainerExecAsync(execCreateResponse.ID, false))
                 {
@@ -462,13 +462,6 @@ namespace Portal.DeploymentService.Class
             // remove any spaces or empty lines 
 
 
-            // update the list of users
-            await RunCommandInContainer(new List<string> { $"echo \"{string.Join(",", updatedUsersList)}\" > users.txt" }, ContainerId);
-            Console.WriteLine("User removed from container's  list of users");
-            // print new list 
-            Console.WriteLine($"Updated users list: {string.Join(",", updatedUsersList)}");
-            // if the list is empty pause the container
-            //TODO we can either stop the container to save computational resources or pause it to save the state of the container and better UX
             if (updatedUsersList.Count == 0)
             {
                 await PauseContainer(ContainerId);
@@ -476,6 +469,8 @@ namespace Portal.DeploymentService.Class
             }
             else
             {
+                await RunCommandInContainer(new List<string> { $"echo \"{string.Join(",", updatedUsersList)}\" > users.txt" }, ContainerId);
+
                 Console.WriteLine("User removed from the list of users, container still running");
             }
 
@@ -501,7 +496,7 @@ namespace Portal.DeploymentService.Class
             return string.Empty;
         }
 
-        public async Task<string> ClientExercisePassed(string uid, string container_id)
+        public async Task<string> ClientExercisePassed(string uid, string container_id, string ip)
         {
             // log inputs 
             Console.WriteLine($"Client evaluation for uid: {uid} and container id: {container_id} mn kalb el ClientExercisePassed");
@@ -511,15 +506,13 @@ namespace Portal.DeploymentService.Class
             string ipList = await RunCommandInContainer(new List<string> { "cat", "/users_ip.txt" }, container_id);
             if (ipList != null)
             {
-                // where users ip and uid are separated by comma
-                // remove user's ip and uid from the list
+                // remove ip the given one 
                 var updatedIpList = ipList
                     .Split('\n')
-                    .Where(x => !x.Contains(uid)) // Filter out items containing Uid
+                    .Where(x => !x.Contains(ip)) // Filter out items containing ip
                     .Where(x => !string.IsNullOrWhiteSpace(x)) // Remove spaces or empty lines
                     .Select(x => x.Trim()) // Optional: Remove extra spaces around entries
                     .ToList();
-                await RunCommandInContainer(new List<string> { $"echo \"{string.Join("\n", updatedIpList)}\" > users_ip.txt" }, container_id);
                 Console.WriteLine("User removed from container's list of ip addresses");
                 Console.WriteLine($"Updated ip list: {string.Join("\n", updatedIpList)}");
             }
