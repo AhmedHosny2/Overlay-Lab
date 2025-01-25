@@ -103,6 +103,7 @@ namespace MyApp.Namespace
             string clientPort = "YourClientPort"; // Replace with actual logic if applicable
             int maxUsers = 1; // Replace with actual logic if applicable
             string ipAddress = "UserIpAddress"; // Replace with actual logic to get user's IP address
+            Dictionary<string,string> Variables = new Dictionary<string,string>(); // Replace with actual logic if needed
 
             // Create the container
             string createdContainerId = await _deploymentService.GetOrCreateContainerForUser(
@@ -113,7 +114,8 @@ namespace MyApp.Namespace
                 ip: ipAddress,
                 isCLient: clientSide,
                 clientPort: clientPort,
-                MaxUsers: maxUsers);
+                MaxUsers: maxUsers,
+                Variables: Variables);
 
             // Store the created container id in the session
             try

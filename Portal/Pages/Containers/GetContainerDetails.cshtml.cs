@@ -59,7 +59,7 @@ namespace MyApp.Namespace
             // Fetch container details
             var serverInstance = await _deploymentService.FetchContainerDetails(exerciseName, DisplayFields, _uid, ip);
             var portNumber = serverInstance.Port;
-            if((bool)exercise.ClientSide)
+            if ((bool)exercise.ClientSide)
             {
                 portNumber = exercise.ClientPort;
                 ip = "0.0.0.0";
@@ -69,7 +69,9 @@ namespace MyApp.Namespace
                 { "ID", serverInstance.ID },
                 { "Image", serverInstance.Image },
                 { "Port", portNumber },
-                { "IpAddress", "0.0.0.0" },
+                { "IpAddress", ip },
+                {"utils", exercise.utils}
+
             };
 
             // Add the map

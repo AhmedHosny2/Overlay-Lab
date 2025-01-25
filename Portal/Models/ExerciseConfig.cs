@@ -24,5 +24,7 @@ public class ExerciseConfig
     public bool? ClientSide { get; set; }
     public string? ClientPort { get; set; }
     public int? MaxUsers { get; set; }
+    public Dictionary<string,string>? Variables { get; set; }
+     public string? utils { get; set; }
 
 }

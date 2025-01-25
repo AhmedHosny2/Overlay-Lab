@@ -79,8 +79,14 @@ namespace Portal.DeploymentService.Class
         // Create container or add user
         // each time user tries to connect/deploy to the container, this method will be called
         public async Task<string> GetOrCreateContainerForUser(string imageName, string exerciseName, string Uid, string port, string ip, bool? isClient = false
-        , string? clientPort = "0.0.0.0", int? MaxUsers = 10000)
+        , string? clientPort = "0.0.0.0", int? MaxUsers = 10000, Dictionary<string, string> Variables = null)
         {
+            // logs variablesobject
+            foreach (var variable in Variables)
+            {
+                Console.WriteLine($"Variable: {variable.Key}, Value: {variable.Value}");
+            }
+
             IList<ContainerListResponse> containersList = await _dockerClient.Containers.ListContainersAsync(new ContainersListParameters
             {
             });
@@ -94,7 +100,7 @@ namespace Portal.DeploymentService.Class
             if (containersList.Count == 0)
             {
                 Console.WriteLine("No containers found, create a new one");
-                return await InitializeContainer(imageName, exerciseName, Uid, port, ip, isClient, clientPort);
+                return await InitializeContainer(imageName, exerciseName, Uid, port, ip, isClient, clientPort, Variables);
 
             }
             bool imageCreated = false;
@@ -125,7 +131,7 @@ namespace Portal.DeploymentService.Class
                     else if (usersList.Split(',').Length >= MaxUsers)
                     {
                         Console.WriteLine("Max number of users reached");
-                        await InitializeContainer(imageName, exerciseName, Uid, port, ip, isClient, clientPort);
+                        await InitializeContainer(imageName, exerciseName, Uid, port, ip, isClient, clientPort, Variables);
                         return container.ID;
                     }
 
@@ -160,7 +166,7 @@ namespace Portal.DeploymentService.Class
             if (!imageCreated)
             {
                 Console.WriteLine("No containers with image specs found, create a new one");
-                return await InitializeContainer(imageName, exerciseName, Uid, port, ip, isClient, clientPort);
+                return await InitializeContainer(imageName, exerciseName, Uid, port, ip, isClient, clientPort, Variables);
             }
 
             return string.Empty;
@@ -168,7 +174,7 @@ namespace Portal.DeploymentService.Class
 
         // Create a new container
         public async Task<string> InitializeContainer(string imageName, string exerciseName, string Uid, string port, string ip, bool? isClient = false, string?
-        clientPort = "0.0.0.0")
+        clientPort = "0.0.0.0", Dictionary<string, string> Variables = null)
         {
             await EnsureDockerImageExists(imageName);
             int hostPort = FindAvailablePort();
@@ -177,7 +183,15 @@ namespace Portal.DeploymentService.Class
             Console.WriteLine($"Assigned host port: {port} ");
             // Log the input parameters
             Console.WriteLine($"Image Name: {imageName}, UID: {Uid}, Port: {port}");
-
+            // Variables is json object that contains the variables that will be passed to the container
+            // print it 
+            if (Variables != null)
+            {
+                foreach (var variable in Variables)
+                {
+                    Console.WriteLine($"Variable: {variable.Key}, Value: {variable.Value}");
+                }
+            }
             // Define port bindings to map host port to container port
             var hostConfig = new HostConfig
             {
@@ -245,6 +259,21 @@ namespace Portal.DeploymentService.Class
                     string containerId = createdContainer.ID;
                     await RunCommandInContainer(new List<string> { $"echo \"{containerId}\" > containerid.txt" }, containerId);
                     Console.WriteLine("User added to the list of users");
+                    if (Variables != null)
+                    {
+                        // check if any value is keyword random to create a random value
+                        // get values from dictionary and replace the keyword random with a random value
+                        foreach (var variable in Variables)
+                        {
+                            if (variable.Value == "random")
+                            {
+                                Variables[variable.Key] = Guid.NewGuid().ToString();
+                            }
+                        }
+                    
+                    // add the dectioanry to the container txt file 
+                    await RunCommandInContainer(new List<string> { $"echo \"{JsonConvert.SerializeObject(Variables)}\" > variables.txt" }, createdContainer.ID);
+                    }
                     if (isClient ?? false)
                     {
                         // checked if their are other ip addresses in the container append the  ip address with comma sepration  else create a new file

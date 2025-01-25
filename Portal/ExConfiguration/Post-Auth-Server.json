@@ -1,0 +1,17 @@
+{
+  "ExerciseName": "Post-Auth-Server",
+  "ExerciseReqConnectionType": "REST",
+  "ExerciseTile": "Treasure Hunt Authentication",
+  "ExerciseDescription": "Your mission is to unlock a treasure chest! First, send a GET request to get a secret key from the server. Then, use the key in a POST request by adding it to the headers to prove you have access. If the key is correct, the chest will open, and you'll get your treasure. Can you do it?",
+  "ExerciseDifficulty": "2",
+  "DockerImage": "ahmedyh1/post_auth",
+  "port": "5010",
+  "DisplayFields": ["Name", "State.Status", "Config.Hostname"],
+  "MaxUsers": 1,
+  "ClientSide": false,
+  "Variables": {
+    "name": "yaya",
+    "secret": "random"
+  },
+  "utils":" you have to do a get rea using /get-secret-key  get req to get the secret key and then use it in the post request to open the chest using /unlock-treasure don't forget to add the secret key in the headers ;)"
+}

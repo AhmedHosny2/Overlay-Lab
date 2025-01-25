@@ -109,6 +109,12 @@ namespace Portal.Pages
             }
 
             LogExerciseConfigurations();
+            _logger.LogInformation("loging vars yaya");
+                // log values in Variables
+            foreach (var item in exerciseConfig.Variables)
+            {
+                _logger.LogInformation("Key: {Key}, Value: {Value}", item.Key, item.Value);
+            }
 
             string containerId = await _deploymentService.GetOrCreateContainerForUser(
                 exerciseConfig.DockerImage,
@@ -118,7 +124,8 @@ namespace Portal.Pages
                 UserIpAddress,
                 exerciseConfig.ClientSide,
                 exerciseConfig.ClientPort,
-                exerciseConfig.MaxUsers);
+                exerciseConfig.MaxUsers,
+                exerciseConfig.Variables);
 
             try
             {

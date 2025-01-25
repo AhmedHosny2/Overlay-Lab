@@ -8,7 +8,12 @@
   "port": "5005",
   "DisplayFields": ["Name", "State.Status", "Config.Hostname"],
   "MaxUsers" : 1,
-  "ClientSide": false
+  "ClientSide": false,
+"Variables": {
+    "name": "yaya",
+    "secret" : "random"
+  }
+
 }
 
 
