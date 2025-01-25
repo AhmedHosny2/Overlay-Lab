@@ -13,7 +13,8 @@
     <title>@ViewData["Title"] - Portal</title>
     <link rel="stylesheet" href="~/css/site.css" />
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet" />
-    <link href="~/css/homePage.css" rel="stylesheet" />
+        <link href="~/css/homePage.css" rel="stylesheet" />
+
 </head>
 
 <body>
@@ -30,7 +31,20 @@
                     <div class="col-md-4 mb-4">
                         <div class="card exercise-card h-100" id="exercise-@exercise.ExerciseName">
                             <div class="card-body d-flex flex-column">
-                                <h5 class="card-title">@exercise.ExerciseTile</h5>
+                                <h5 class="card-title d-flex align-items-center justify-content-start gap-2 text-left">
+                                    @exercise.ExerciseTile
+                                    @if (exercise.ClientSide == true)
+                                    {
+                                        <img src="~/assets/client.png" alt="Client" class="img-fluid"
+                                            style="width: 40px; height: 40px;" />
+                                    }
+                                    else
+                                    {
+                                        <img src="~/assets/server.png" alt="Server" class="img-fluid"
+                                            style="width: 40px; height: 40px;" />
+                                    }
+                                </h5>
+
                                 <p class="card-text">@exercise.ExerciseDescription</p>
                                 <p class="card-text"><small class="text-muted">Difficulty:
                                         @exercise.ExerciseDifficulty</small></p>
@@ -66,7 +80,6 @@
                 }
             </div>
         </div>
-
     </div>
 
     <!-- Scripts -->

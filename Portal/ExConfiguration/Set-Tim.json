@@ -1,7 +1,7 @@
 {
   "ExerciseName": "Set-Time",
   "ExerciseReqConnectionType": "REST",
-  "ExerciseTile": "HTTP Put Request Server side",
+  "ExerciseTile": "HTTP Put Request Client side",
   "ExerciseDescription": "This exercise will help you to understand how to send a Post req with body the and receive a response from a server including the status code and new time",
   "ExerciseDifficulty": "1",
   "DockerImage": "ahmedyh1/set_time_app",
