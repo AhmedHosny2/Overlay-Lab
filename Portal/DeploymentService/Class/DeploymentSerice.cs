@@ -180,7 +180,7 @@ namespace Portal.DeploymentService.Class
             int hostPort = FindAvailablePort();
 
             string hostPortStr = hostPort.ToString();
-            Console.WriteLine($"Assigned host port: {port} ");
+            Console.WriteLine($"Assigned host port: {hostPortStr} ");
             // Log the input parameters
             Console.WriteLine($"Image Name: {imageName}, UID: {Uid}, Port: {port}");
             // Variables is json object that contains the variables that will be passed to the container
@@ -195,7 +195,6 @@ namespace Portal.DeploymentService.Class
             // Define port bindings to map host port to container port
             var hostConfig = new HostConfig
             {
-                NetworkMode = "host",
                 PortBindings = new Dictionary<string, IList<PortBinding>>
         {
             {
@@ -224,10 +223,9 @@ namespace Portal.DeploymentService.Class
 
 
                 ExposedPorts = new Dictionary<string, EmptyStruct>
-
-                {
-            { $"{hostPortStr}/tcp", new EmptyStruct() }
-            }
+                    {
+                        { $"{port}/tcp", new EmptyStruct() } // Expose the container's internal port
+                    }
             };
 
 
@@ -270,9 +268,9 @@ namespace Portal.DeploymentService.Class
                                 Variables[variable.Key] = Guid.NewGuid().ToString();
                             }
                         }
-                    
-                    // add the dectioanry to the container txt file 
-                    await RunCommandInContainer(new List<string> { $"echo \"{JsonConvert.SerializeObject(Variables)}\" > variables.txt" }, createdContainer.ID);
+
+                        // add the dectioanry to the container txt file 
+                        await RunCommandInContainer(new List<string> { $"echo \"{JsonConvert.SerializeObject(Variables)}\" > variables.txt" }, createdContainer.ID);
                     }
                     if (isClient ?? false)
                     {
