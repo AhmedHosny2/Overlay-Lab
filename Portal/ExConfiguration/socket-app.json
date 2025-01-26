@@ -21,6 +21,7 @@
     ],
     "ClientSide": false,
     "Variables": {
-      "host": ""
+      "host": "",
+      "port": "5007"
     }
   }

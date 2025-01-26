@@ -276,8 +276,6 @@ namespace Portal.DeploymentService.Class
 
                         // add the dectioanry to the container txt file 
                         await RunCommandInContainer(new List<string> { $"echo \"{JsonConvert.SerializeObject(Variables)}\" > variables.txt" }, createdContainer.ID);
-                        // add port number in port.txt 
-                        await RunCommandInContainer(new List<string> { $"echo \"{clientPort}\" > port.txt" }, createdContainer.ID);
 
                     }
                     if (isClient ?? false)
@@ -287,6 +285,9 @@ namespace Portal.DeploymentService.Class
                         if (ipList == null)
                         {
                             await RunCommandInContainer(new List<string> { $"echo \"{ip},{Uid}\" > users_ip.txt" }, createdContainer.ID);
+                            // add port number in port.txt 
+                            await RunCommandInContainer(new List<string> { $"echo \"{clientPort}\" > port.txt" }, createdContainer.ID);
+
                         }
                         else
                         {
