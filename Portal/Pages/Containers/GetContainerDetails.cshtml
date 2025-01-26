@@ -31,6 +31,12 @@
                 <tbody>
                     @foreach (var entry in Model.Container)
                     {
+                        @if(entry.Value==null)
+                        {
+                            continue;
+                        }
+                        
+                         
                         <tr style="background-color: #f9f9f9; border-bottom: 1px solid #ddd;">
                             <td style="padding: 12px; font-weight: bold; color: #2F4F4F;">@entry.Key</td>
                             <td style="padding: 12px; color: #4B0082; word-break: break-word;">@entry.Value</td>

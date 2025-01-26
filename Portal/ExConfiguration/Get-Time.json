@@ -7,15 +7,10 @@
   "DockerImage": "ahmedyh1/time_app",
   "port": "5005",
   "DisplayFields": ["Name", "State.Status", "Config.Hostname"],
-  "MaxUsers" : 1,
+  "MaxUsers": 1,
   "ClientSide": false,
-"Variables": {
+  "Variables": {
     "name": "yaya",
-    "secret" : "random"
+    "secret": "random"
   }
-
 }
-
-
-
-

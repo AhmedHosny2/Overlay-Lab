@@ -272,6 +272,10 @@ namespace Portal.DeploymentService.Class
                             {
                                 Variables[variable.Key] = GetVmIpAddress();
                             }
+                            if(variable.Key == "exposedPort")
+                            {
+                                Variables[variable.Key] = hostPortStr;
+                            }
                         }
 
                         // add the dectioanry to the container txt file 
