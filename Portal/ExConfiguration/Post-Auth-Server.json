@@ -10,7 +10,7 @@
   "MaxUsers": 1,
   "ClientSide": false,
   "Variables": {
-    "name": "yaya",
+    "host": "",
     "secret": "random"
   },
   "utils": " you have to do a get rea using /get-secret-key  get req to get the secret key and then use it in the post request to open the chest using /unlock-treasure don't forget to add the secret key in the headers ;)"

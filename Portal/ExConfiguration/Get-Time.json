@@ -10,7 +10,6 @@
   "MaxUsers": 1,
   "ClientSide": false,
   "Variables": {
-    "name": "yaya",
     "secret": "random"
   }
 }

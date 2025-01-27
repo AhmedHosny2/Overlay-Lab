@@ -78,6 +78,8 @@ namespace Portal.Models
 
             this.Image = GetValueFromJson(containerInspectResponse, "Config.Image");
             this.ID = GetValueFromJson(containerInspectResponse, "Id");
+
+            
             this.IpAddress = GetVmIpAddress();
             foreach (var field in displayFields)
             {

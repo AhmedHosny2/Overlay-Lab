@@ -8,5 +8,9 @@
   "port": "5050",
   "DisplayFields": ["Name", "State.Status", "Config.Hostname"],
   "ClientSide": true,
-  "ClientPort": "5009"
+  "ClientPort": "5009",
+  "Variables": {
+    "host": "",
+    "exposedPort": ""
+  }
 }
