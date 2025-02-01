@@ -134,7 +134,8 @@ Log in to view available exercises.
    ![grcp example detials ](https://github.com/user-attachments/assets/5c1b18ee-1be6-4bcc-bbcc-2798719c6de9)
 
 2. **View Container Details**: Check the container’s status and networking information.
-   ![gRPC Example Details](https://github.com/user-attachments/assets/251a9ef1-ec5b-4dfe-a367-eac5530c4a86)
+ ![ex container details ](https://github.com/user-attachments/assets/69b6ce40-e61e-4772-a90c-8139ca44f21f)
+
 3. **Student Code & Response**: Write your client code to send requests and observe the container’s response.
    ![User's Code](https://github.com/user-attachments/assets/a14b3453-dc03-4d16-b42c-5e3f0e2de5ae)
 
