@@ -1,99 +1,133 @@
-# Educational Programming Platform
+![high system overview](https://github.com/user-attachments/assets/3e16e1e8-c002-4311-b371-5f6d70cd7c2a)
+# High System Overview
 
-![High System Overview](https://github.com/user-attachments/assets/1db2cfcd-a116-474a-a32d-4e3ecc6f6750)
-*Figure: High-level system architecture overview*
+This platform provides isolated programming exercises using **Docker** containers and a secure **VXLAN** overlay network. Students focus on writing code (client or server), while each exercise runs as a container in a private environment. Follow the steps below to set up a gateway VM, connect to the overlay network, and interact with the exercises.
 
-This platform revolutionizes educational programming exercises by leveraging modern technologies like **Docker containers**, **Razor Pages**, **NGINX**, and a **VXLAN-based overlay network**. It simplifies exercise management and automates containerized environments, providing hands-on learning for students and efficient administration tools for instructors.
 
----
 
-## Key Features
+## Container-Oriented
 
-- **Modular Exercise Management**: Define and manage exercises using JSON configurations.
-- **Dynamic Docker Container Orchestration**: Automates container lifecycle, IP, and port assignments for exercises.
-- **Two Exercise Modes**:
-  - **Server-Side Exercises**: Students develop servers to handle client requests simulated by the platform.
-  - **Client-Side Exercises**: Students write clients to interact with provided server containers.
-- **Secure Networking**: Ensures private, reliable communication using a VXLAN overlay network.
-- **Real-Time Monitoring**: Track active containers, resource usage, and user activity.
+Each exercise runs as a Docker container. Depending on the exercise, this container acts as either a **client** or a **server**. Students only write the complementary code.
 
----
+## Secure Overlay
 
-## How It Works
+We employ a VXLAN-based overlay network to keep communications private and prevent conflicts on shared infrastructure. Containers and student VMs connect through this overlay without exposing ports publicly.
 
-1. **Platform Hosting**:
-   - Hosted on a dedicated **VM** within a secure **VXLAN overlay network**.
-   - The **NGINX reverse proxy** preserves user IPs and handles traffic.
+## NGINX Reverse Proxy
 
-2. **Exercise Containers**:
-   - **Docker containers** dynamically simulate client or server roles for exercises.
-   - Containers are isolated and communicate via the overlay network.
+Incoming traffic is routed through **NGINX**, which preserves user IPs and balances load. It also simplifies DNS resolution, allowing connections via a user-friendly domain (e.g., `server.local`).
 
-3. **Student Interaction**:
-   - Students log in via a **Razor Pages-based** web interface.
-   - Select exercises, receive container details, and write code (client or server) to interact with the containers.
+## JSON-Defined Exercises
 
-### Deployment Workflow
-![Deployment Diagram](https://github.com/user-attachments/assets/63523871-6098-4310-a9b1-568cb1898f56)
-*Figure: Deployment process illustrating VM setup, container orchestration, and overlay network integration.*
+Administrators define exercises with a simple JSON file. Each configuration can include environment variables, maximum user limits (`maxUsers`), and more. The container uses these definitions to set up networking, ports, and any custom environment variables.
 
----
-
-## Visual Walkthrough
-
-### 1. Home Page
-![Home Page](https://github.com/user-attachments/assets/a1e3a7e6-8297-4860-a6d4-c231eb26368e)
-*Browse available exercises and their configurations.*
-
-### 2. Server Details
-![Server Details](https://github.com/user-attachments/assets/620c81b4-a92d-4027-b31d-6c16cbca0429)
-*View real-time details of your Docker container for active exercises.*
-
-### 3. Sequence Diagram for Exercise Creation
-![Sequence Diagram](https://github.com/user-attachments/assets/d5050e6e-b2de-4664-a415-91a952a6ac8c)
-*How exercises are created and managed through the system.*
-
----
-
-## Example JSON Configuration
+### Example JSON Configuration
 
 ```json
 {
-  "ExerciseName": "Get-Time",
-  "ExerciseReqConnectionType": "REST",
-  "ExerciseTile": "HTTP Get Request Simulation",
-  "ExerciseDescription": "Learn to send GET requests and handle responses.",
-  "DockerImage": "ahmedyh1/time_app",
-  "port": "5005"
+  "ExerciseName": "grpc-app",
+  "ExerciseReqConnectionType": "grpc",
+  "ExerciseTile": "gRPC Adventure",
+  "ExerciseDescription": "Dive into the world of gRPC! Build a client that connects to a gRPC server and interacts with it to create, fetch, list, and delete users.",
+  "ExerciseDifficulty": "2",
+  "DockerImage": "ahmedyh1/grcp_server",
+  "port": "5015",
+  "DisplayFields": [
+    "Name",
+    "State.Status",
+    "Config.Hostname",
+    "NetworkSettings.Networks.bridge.NetworkID"
+  ],
+  "ClientSide": false,
+  "Variables": {
+    "host": "",
+    "exposedPort": ""
+  }
 }
 ```
 
----
+	•	ExerciseName: Unique identifier (“grpc-app”).
+	•	ExerciseReqConnectionType: Communication type (“grpc”).
+	•	DockerImage: Container image to launch.
+	•	Variables: Environment values (e.g., host, port mappings).
 
-## Technical Highlights
+Solving Exercises as a Student
 
-- **Platform Hosting**:
-  - VM hosted within a **VXLAN overlay network** for secure communication.
-  - **NGINX reverse proxy** ensures traffic routing and preserves user IPs.
+This guide assumes basic familiarity with overlay networks. For further context, see section 1.4 of this guide.
 
-- **Exercise Containers**:
-  - **Docker** orchestrates lightweight containers for exercises.
-  - Containers interact securely over the overlay network.
+Step 1: Set Up the Agent VM
+	1.	Install Multipass
+Ensure Multipass is installed on your machine.
+	2.	Launch the Agent VM
 
-- **Authentication**:
-  - **Azure Active Directory** for secure user authentication and access control.
+``multipass launch -n agent --cloud-init https://ovl.st.hs-ulm.de:4001/conf/user-data-mp.yaml jammy``
+``multipass shell``
 
-- **Programming Language Support**:
-  - Exercises support Python, Java, TypeScript, C#, and Go.
+	•	Once created, you’ll automatically enter the VM shell.
 
----
+Step 2: Register the VM in the Overlay Network
 
-## For More Details
+Inside the VM shell, execute:
 
-- **[Admin: How to Deploy the Server](https://github.com/AhmedHosny2/testbed-distributed-system/blob/main/docs/admin_deploy_server.md)**: Step-by-step instructions to set up the server VM and deploy the platform.
-- **[Admin: How to Create an Exercise](https://github.com/AhmedHosny2/testbed-distributed-system/blob/main/docs/admin_create_exercise.md)**: Guide for defining and configuring exercises.
-- **[Student: How to Solve an Exercise](https://github.com/AhmedHosny2/testbed-distributed-system/blob/main/docs/student_solve_exercise.md)**: Instructions for students to interact with and solve exercises.
+# Register the VM
+``sudo vx register -o``
 
----
+# Start the overlay service
+``sudo vx start``
 
-This project demonstrates expertise in **containerization**, **web development**, and **networking**, providing a secure, scalable, and user-friendly environment for educational programming.
+# Test the connection
+``ping 10.1.0.2``
+
+If you see replies, your VM is connected to the overlay.
+
+Now configure NGINX and map the server’s IP to server.local:
+
+``curl -o init_nginx.sh https://ulm.ahmed-yehia.me/init_nginx && chmod +x init_nginx.sh && sudo ./init_nginx.sh && \
+curl -o update_srv_ip.sh https://ulm.ahmed-yehia.me/update_srv_ip && chmod +x update_srv_ip.sh && sudo ./update_srv_ip.sh``
+
+Step 3: Run the Configuration Script
+
+Finalize local machine settings within the VM:
+
+``curl -o agent_vm_ulm.ps1 https://ulm.ahmed-yehia.me/download && pwsh -ExecutionPolicy Bypass -File ./agent_vm_ulm.ps1``
+
+After running this, your agent VM and local environment are fully configured for the overlay network.
+
+Step 4: Access and Solve Exercises
+	1.	Access the Portal
+Open a browser on your local machine and navigate to:
+
+server.local
+
+	•	Log in to view available exercises.
+ ![HOMe page](https://github.com/user-attachments/assets/6d417bfd-fc94-4e78-94f3-5c1457bb7ff2)
+
+
+	2.	Solve Client-Side Exercises
+ ![grcp example detials ](https://github.com/user-attachments/assets/251a9ef1-ec5b-4dfe-a367-eac5530c4a86)
+
+	•	Start the Exercise:
+From the portal, choose a client-side exercise. Note the server container’s IP, port, or other details.
+
+	•	View Container Details:
+Check the container’s status and networking information.
+![ex container details ](https://github.com/user-attachments/assets/bdfce7b8-c587-44db-8ec3-ce71b2fdd47e)
+
+	•	Student Code & Response:
+Write your client code to send requests and observe the container’s response.
+![user's things](https://github.com/user-attachments/assets/a14b3453-dc03-4d16-b42c-5e3f0e2de5ae)
+
+	3.	Solve Server-Side Exercises
+ ![ss 2025-01-26 at 11 58 18 PM](https://github.com/user-attachments/assets/0cbbe410-0e78-4dc2-ae77-52d89b18f7ae)
+
+	•	Start the Exercise:
+From the portal, select a server-side exercise. You will be provided with an IP and port to listen on.
+
+	•	View Container Details:
+Check the container’s status (acting as the client) that sends test requests.
+![docker container details for user](https://github.com/user-attachments/assets/50b46519-2d5c-4f25-9572-88cfa1b37fd4)
+
+	•	Student Code & Response:
+Write your server code to handle incoming requests and verify the response.
+![student's server code](https://github.com/user-attachments/assets/616fd1fe-9f16-49ea-a9ec-201d89ac8c7f)
+
