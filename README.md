@@ -15,7 +15,6 @@ A platform for isolated programming exercises using **Docker** containers and a 
 5. [Configuration](#configuration)  
 6. [Contributing Guidelines](#contributing-guidelines)  
 7. [Visual Enhancements](#visual-enhancements)  
-8. [License](#license)  
 
 ---
 
