@@ -94,40 +94,40 @@ Finalize local machine settings within the VM:
 After running this, your agent VM and local environment are fully configured for the overlay network.
 
 Step 4: Access and Solve Exercises
-	1.	Access the Portal
+1.	Access the Portal
 Open a browser on your local machine and navigate to:
 
 server.local
 
-	•	Log in to view available exercises.
+Log in to view available exercises.
  ![HOMe page](https://github.com/user-attachments/assets/6d417bfd-fc94-4e78-94f3-5c1457bb7ff2)
 
 
-	2.	Solve Client-Side Exercises
+2.	Solve Client-Side Exercises
  ![grcp example detials ](https://github.com/user-attachments/assets/251a9ef1-ec5b-4dfe-a367-eac5530c4a86)
 
-	•	Start the Exercise:
+Start the Exercise:
 From the portal, choose a client-side exercise. Note the server container’s IP, port, or other details.
 
-	•	View Container Details:
+View Container Details:
 Check the container’s status and networking information.
 ![ex container details ](https://github.com/user-attachments/assets/bdfce7b8-c587-44db-8ec3-ce71b2fdd47e)
 
-	•	Student Code & Response:
+Student Code & Response:
 Write your client code to send requests and observe the container’s response.
 ![user's things](https://github.com/user-attachments/assets/a14b3453-dc03-4d16-b42c-5e3f0e2de5ae)
 
-	3.	Solve Server-Side Exercises
+3.	Solve Server-Side Exercises
  ![ss 2025-01-26 at 11 58 18 PM](https://github.com/user-attachments/assets/0cbbe410-0e78-4dc2-ae77-52d89b18f7ae)
 
-	•	Start the Exercise:
+Start the Exercise:
 From the portal, select a server-side exercise. You will be provided with an IP and port to listen on.
 
-	•	View Container Details:
+View Container Details:
 Check the container’s status (acting as the client) that sends test requests.
 ![docker container details for user](https://github.com/user-attachments/assets/50b46519-2d5c-4f25-9572-88cfa1b37fd4)
 
-	•	Student Code & Response:
+Student Code & Response:
 Write your server code to handle incoming requests and verify the response.
 ![student's server code](https://github.com/user-attachments/assets/616fd1fe-9f16-49ea-a9ec-201d89ac8c7f)
 
