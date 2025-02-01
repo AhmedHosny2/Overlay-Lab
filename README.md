@@ -134,7 +134,8 @@ Example JSON exercise definition:
 
 ### Portal Interface  
 Homepage showing available exercises with difficulty levels and descriptions:  
-![Exercise Portal Homepage](https://github.com/user-attachments/assets/c7b611f9-feb5-4502-af76-ad892252c04d)
+
+![HOMe page](https://github.com/user-attachments/assets/70c06d5c-3b97-4534-88fc-d0eed6449bd8)
 
 ---
 
