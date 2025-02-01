@@ -94,16 +94,24 @@ Overlay Lab provides an environment where students complete programming exercise
 Example JSON exercise definition:  
 ```json
 {
-  "ExerciseName": "grpc-app",
-  "ExerciseReqConnectionType": "grpc",
-  "ExerciseTile": "gRPC Adventure",
-  "DockerImage": "ahmedyh1/grcp_server",
-  "port": "5015",
-  "ClientSide": false,
-  "Variables": {
-    "host": "",
-    "exposedPort": ""
-  }
+    "ExerciseName": "grpc-app",
+    "ExerciseReqConnectionType": "grpc",
+    "ExerciseTile": "gRPC Adventure",
+    "ExerciseDescription": "Dive into the world of gRPC! Build a client that connects to a gRPC server and interacts with it to create, fetch, list, and delete users.",
+    "ExerciseDifficulty": "2",
+    "DockerImage": "ahmedyh1/grcp_server",
+    "port": "5015",
+    "DisplayFields": [
+      "Name",
+      "State.Status",
+      "Config.Hostname",
+      "NetworkSettings.Networks.bridge.NetworkID"
+    ],
+    "ClientSide": false,
+    "Variables": {
+      "host": "",
+      "exposedPort": ""
+    }
 }
 ```  
 
