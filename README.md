@@ -94,7 +94,7 @@ Finalize local machine settings within the VM:
 After running this, your agent VM and local environment are fully configured for the overlay network.
 
 Step 4: Access and Solve Exercises
-1.	Access the Portal
+	1.	Access the Portal
 Open a browser on your local machine and navigate to:
 
 server.local
