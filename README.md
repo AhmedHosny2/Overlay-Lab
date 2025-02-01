@@ -1,200 +1,163 @@
-# Overlay Lab
 
-![high system overview network view](https://github.com/user-attachments/assets/7cc186c5-feec-4022-bf1a-f049cead6004)
+# Overlay Lab  
 
-A platform for isolated programming exercises using **Docker** containers and a secure **VXLAN** overlay network.
+![High-Level System Architecture](https://github.com/user-attachments/assets/7cc186c5-feec-4022-bf1a-f049cead6004)  
 
----
-
-## Table of Contents
-
-1. [Project Overview](#project-overview)
-2. [Installation Guide](#installation-guide)
-3. [Usage Instructions](#usage-instructions)
-4. [Key Features](#key-features)
-5. [Configuration](#configuration)
-6. [Contributing Guidelines](#contributing-guidelines)
-7. [Visual Enhancements](#visual-enhancements)
-8. [License](#license)
+A platform for isolated programming exercises using **Docker** containers and a secure **VXLAN** overlay network.  
 
 ---
 
-## System Architecture Overview
-
-This project provides an environment where students can complete programming exercises in isolation. Each exercise runs inside a dedicated Docker container and communicates over a secure VXLAN overlay network. The main objectives are:
-
-- **Isolation:** Each exercise is **containerized**, ensuring a safe and independent testing environment.
-- **Security:** A private **VXLAN overlay network keeps** container communications secure.
-- **Flexibility:** Administrators can define exercises via JSON configuration, allowing for both client- and server-side challenges.
+## Table of Contents  
+1. [Project Overview](#project-overview)  
+2. [Installation Guide](#installation-guide)  
+3. [Usage Instructions](#usage-instructions)  
+4. [Key Features](#key-features)  
+5. [Configuration](#configuration)  
+6. [Contributing Guidelines](#contributing-guidelines)  
+7. [Visual Enhancements](#visual-enhancements)  
+8. [License](#license)  
 
 ---
 
-## Installation Guide
+## Project Overview  
+Overlay Lab provides an environment where students complete programming exercises in isolated Docker containers connected via a secure VXLAN overlay network.  
 
-Follow these steps to set up your development environment and install necessary dependencies.
+**Core Goals**:  
+- **Isolation**: Containerized exercises prevent interference between users  
+- **Security**: VXLAN network encrypts inter-container communication  
+- **Flexibility**: JSON-configurable exercises for client/server challenges  
 
-### Prerequisites
+---
 
-- [Docker](https://www.docker.com/get-started)
-- [Multipass](https://multipass.run/)
-- [NGINX](https://www.nginx.com/)
+## Installation Guide  
 
-### Steps
+### Prerequisites  
+- [Docker](https://www.docker.com/get-started)  
+- [Multipass](https://multipass.run/)  
+- [NGINX](https://www.nginx.com/)  
 
-1. **Clone the Repository:**
-
+### Setup Steps  
+1. Clone the repository:  
    ```bash
    git clone https://github.com/AhmedHosny2/testbed-distributed-system.git
    cd projectname
+   ```  
 
-	2.	Install Dependencies:
-Ensure Docker and Multipass are installed on your machine. For example, on Ubuntu:
+2. Install dependencies (Ubuntu example):  
+   ```bash
+   sudo apt update && sudo apt install docker.io multipass nginx
+   ```  
 
-sudo apt update && sudo apt install docker.io multipass nginx
+3. Launch the agent VM:  
+   ```bash
+   multipass launch -n agent --cloud-init https://ovl.st.hs-ulm.de:4001/conf/user-data-mp.yaml jammy
+   multipass shell
+   ```  
 
+---
 
-	3.	Setup the Agent VM:
-Launch the agent VM using Multipass:
+## Usage Instructions  
 
-multipass launch -n agent --cloud-init https://ovl.st.hs-ulm.de:4001/conf/user-data-mp.yaml jammy
-multipass shell
+1. **Register VM in Overlay Network**:  
+   ```bash
+   sudo vx register -o  # Register VM
+   sudo vx start        # Start overlay service
+   ping 10.1.0.2        # Test connectivity
+   ```  
 
-Usage Instructions
+2. **Configure NGINX**:  
+   ```bash
+   curl -o init_nginx.sh https://ulm.ahmed-yehia.me/init_nginx && chmod +x init_nginx.sh && sudo ./init_nginx.sh
+   curl -o update_srv_ip.sh https://ulm.ahmed-yehia.me/update_srv_ip && chmod +x update_srv_ip.sh && sudo ./update_srv_ip.sh
+   ```  
 
-After installation, follow these steps to start using the platform:
+3. **Finalize Setup**:  
+   ```bash
+   curl -o agent_vm_ulm.ps1 https://ulm.ahmed-yehia.me/download && pwsh -ExecutionPolicy Bypass -File ./agent_vm_ulm.ps1
+   ```  
 
-1. Register the VM in the Overlay Network
+4. Access the portal at:  
+   ```
+   http://server.local
+   ```  
 
-Inside the agent VM shell, register and start the overlay service:
+---
 
-# Register the VM
-sudo vx register -o
+## Key Features  
+- **Container Isolation**: Dedicated Docker containers per exercise  
+- **VXLAN Security**: Encrypted overlay network layer  
+- **NGINX Proxy**: IP preservation, load balancing, and DNS resolution  
+- **JSON Configuration**: Define exercises with custom parameters  
 
-# Start the overlay service
-sudo vx start
+---
 
-# Test the connection
-ping 10.1.0.2
-
-2. Configure NGINX
-
-Run the following commands to set up NGINX for mapping the server’s IP to server.local:
-
-curl -o init_nginx.sh https://ulm.ahmed-yehia.me/init_nginx && chmod +x init_nginx.sh && sudo ./init_nginx.sh && \
-curl -o update_srv_ip.sh https://ulm.ahmed-yehia.me/update_srv_ip && chmod +x update_srv_ip.sh && sudo ./update_srv_ip.sh
-
-3. Finalize the Configuration
-
-Run the configuration script to set up local settings:
-
-curl -o agent_vm_ulm.ps1 https://ulm.ahmed-yehia.me/download && pwsh -ExecutionPolicy Bypass -File ./agent_vm_ulm.ps1
-
-4. Access the Portal
-
-Open your browser and navigate to:
-
-http://server.local
-
-Log in to view and select available exercises.
-
-Key Features
-	•	Container-Oriented Architecture:
-Each exercise runs as a dedicated Docker container acting either as a client or server. This design isolates environments and simplifies management.
-	•	Secure Overlay Network:
-A VXLAN-based overlay ensures that container and VM communications remain private and conflict-free.
-	•	NGINX Reverse Proxy:
-Incoming traffic is managed by NGINX, which preserves user IPs, balances the load, and resolves DNS with friendly domain names.
-	•	JSON-Defined Exercises:
-Administrators can define exercises with customizable settings, including environment variables and network configurations.
-
-Configuration
-
-Exercises are defined via JSON files. Below is an example configuration:
-
-Example JSON Configuration
-
+## Configuration  
+Example JSON exercise definition:  
+```json
 {
   "ExerciseName": "grpc-app",
   "ExerciseReqConnectionType": "grpc",
   "ExerciseTile": "gRPC Adventure",
-  "ExerciseDescription": "Dive into the world of gRPC! Build a client that connects to a gRPC server and interacts with it to create, fetch, list, and delete users.",
-  "ExerciseDifficulty": "2",
   "DockerImage": "ahmedyh1/grcp_server",
   "port": "5015",
-  "DisplayFields": [
-    "Name",
-    "State.Status",
-    "Config.Hostname",
-    "NetworkSettings.Networks.bridge.NetworkID"
-  ],
   "ClientSide": false,
   "Variables": {
     "host": "",
     "exposedPort": ""
   }
 }
+```  
 
-	•	ExerciseName: Unique identifier.
-	•	ExerciseReqConnectionType: Communication protocol (e.g., grpc).
-	•	DockerImage: The container image to deploy.
-	•	Variables: Key-value pairs for dynamic configuration.
+---
 
-Contributing Guidelines
+## Contributing Guidelines  
+1. Fork the repository  
+2. Create a feature branch:  
+   ```bash
+   git checkout -b feature/your-feature
+   ```  
+3. Follow existing code style  
+4. Submit a PR with detailed description  
 
-We welcome contributions from the community! Please follow these steps:
-	1.	Fork the Repository:
-Click the Fork button on GitHub to create a copy of the repository.
-	2.	Clone Your Fork:
+---
 
-git clone https://github.com/AhmedHosny2/testbed-distributed-system.git
-cd projectname
+## Visual Enhancements  
 
+### Client-Side Exercise Example
 
-	3.	Create a Feature Branch:
+### Portal Interface  
+Homepage showing available exercises with difficulty levels and descriptions:  
+![Exercise Portal Homepage](https://github.com/user-attachments/assets/c7b611f9-feb5-4502-af76-ad892252c04d)
 
-git checkout -b feature/your-feature-name
+---
 
+**1. Exercise Overview**  
+Students select client-side exercises from the portal. The system provides server container details (IP/port) for connection.  
+![Client Exercise Interface](https://github.com/user-attachments/assets/dd73e656-1d3e-4f82-a620-9db1c79d1cf6)  
 
-	4.	Make Your Changes:
-Follow the existing coding style and add comments where necessary.
-	5.	Run Tests:
-Ensure your changes pass all tests.
-	6.	Submit a Pull Request:
-Describe your changes and the rationale behind them.
+**2. Container Details**  
+Real-time container networking information including IP address (`10.1.0.2`), exposed port (`5015`), and status:  
+![Container Network Details](https://github.com/user-attachments/assets/d1e159b2-b11b-47e8-8c44-f2b0bf3b16d0)  
 
-For more detailed guidelines, please see our CONTRIBUTING.md file.
+**3. Code Implementation**  
+Students write client code to interact with the server container, with immediate feedback shown:  
+![Client Code and Response](https://github.com/user-attachments/assets/ede43f22-2337-4cc6-993e-78f2c23700fd)  
 
-Visual Enhancements
+---
 
-High System Overview
+### Server-Side Exercise Example
 
-This diagram illustrates the overall architecture, highlighting Docker containers, the VXLAN overlay network, and the NGINX reverse proxy setup.
+**1. Exercise Setup**  
+Students launch server-side exercises and receive endpoint details (`10.1.0.3:8080`) to implement server logic:  
+![Server Exercise Interface](https://github.com/user-attachments/assets/3f5ff2ab-84c4-4313-871b-02d6aa0ea10d)  
 
-Example Screenshots
-	•	Home Page Portal:
-    ![home_page](https://github.com/user-attachments/assets/c7b611f9-feb5-4502-af76-ad892252c04d)
+**2. Container Monitoring**  
+Live view of client containers sending test requests to student servers:  
+![Client Container Monitor](https://github.com/user-attachments/assets/47082e9b-bf14-4d48-9c3a-80904ee3eac3)  
 
+**3. Server Implementation**  
+Students write server code and see validation results from test containers:  
+![Server Code Validation](https://github.com/user-attachments/assets/beb774b1-2f21-479c-b5ce-2af3d84937a0)  
 
-•	Start the Exercise: From the portal, choose a client-side exercise. Note the server container’s IP, port, or other details.
- ![ss 2025-02-02 at 12 19 39 AM](https://github.com/user-attachments/assets/dd73e656-1d3e-4f82-a620-9db1c79d1cf6)
-
-
-•	View Container Details: Check the container’s status and networking information.
-![ctonainer details ](https://github.com/user-attachments/assets/d1e159b2-b11b-47e8-8c44-f2b0bf3b16d0)
-	•	Student Code & Response: Write your client code to send requests and observe the container’s response.
- 
-![user's code and resposne ](https://github.com/user-attachments/assets/ede43f22-2337-4cc6-993e-78f2c23700fd)
-
-
-
-Solve Server-Side Exercises
-Start the Exercise: From the portal, select a server-side exercise. You will be provided with an IP and port to listen on.
-![ss 2025-01-26 at 11 58 18 PM](https://github.com/user-attachments/assets/3f5ff2ab-84c4-4313-871b-02d6aa0ea10d)
-
-
-View Container Details: Check the container’s status (acting as the client) that sends test requests. Docker Container Details
-![docker container details for user](https://github.com/user-attachments/assets/47082e9b-bf14-4d48-9c3a-80904ee3eac3)
-
-Student Code & Response: Write your server code to handle incoming requests and verify the response. Student's Server Code
-![student's server code](https://github.com/user-attachments/assets/beb774b1-2f21-479c-b5ce-2af3d84937a0)
+---
 
