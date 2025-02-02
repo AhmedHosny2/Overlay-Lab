@@ -14,7 +14,8 @@ A platform for isolated programming exercises using **Docker** containers and a 
 4. [Key Features](#key-features)  
 5. [Configuration](#configuration)  
 6. [Contributing Guidelines](#contributing-guidelines)  
-7. [Visual Enhancements](#visual-enhancements)  
+7. [Visual Enhancements](#visual-enhancements)
+8. [📚 Additional Resources](#Additional-Resources)
 
 ---
 
@@ -168,4 +169,33 @@ Students write server code and see validation results from test containers:
 ![Server Code Validation](https://github.com/user-attachments/assets/beb774b1-2f21-479c-b5ce-2af3d84937a0)  
 
 ---
+## 📚 Additional Resources
 
+This section contains links to supporting documentation and repositories that complement the **Educational Programming Platform**.
+
+---
+
+### 📄 Documentation
+1. **Admin Setup**:  
+   - [Admin: How to Deploy the Server](./docs/admin_deploy_server.md)  
+   - [Admin: How to Create an Exercise](./docs/admin_create_exercise.md)  
+2. **Student Workflow**:  
+   - [Student: How to Solve an Exercise](./docs/student_solve_exercise.md)  
+
+---
+
+### 🛠️ Supporting Repositories
+1. **Gateway VM Scripts**:  
+   - Repository: [gateway-vm-scripts](https://github.com/AhmedHosny2/gateway-vm-scripts)  
+   - Contains scripts to initialize NGINX and launch the VM gateway into the VXLAN overlay network.  
+
+2. **Docker Images for Exercises**:  
+   - Repository: [Docker-Images-For-Exercise](https://github.com/AhmedHosny2/Docker-Images-For-Exercise)  
+   - Includes pre-built Docker images and examples of student solutions for exercises.  
+
+---
+
+### 🧩 Example Solutions
+- Explore example solutions and Docker configurations in the [Overlay-Lab Docs](https://github.com/AhmedHosny2/Overlay-Lab/tree/main/docs).  
+
+---
