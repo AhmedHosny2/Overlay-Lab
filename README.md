@@ -1,4 +1,3 @@
-![ex container details ](https://github.com/user-attachments/assets/f9bb5089-2679-482a-bac0-8405cea72fb1)
 # Overlay Lab  
 
 ![High-Level System Architecture](https://github.com/user-attachments/assets/7cc186c5-feec-4022-bf1a-f049cead6004)  
