@@ -15,7 +15,7 @@ A platform for isolated programming exercises using **Docker** containers and a 
 5. [Configuration](#configuration)  
 6. [Contributing Guidelines](#contributing-guidelines)  
 7. [Visual Enhancements](#visual-enhancements)
-8. [📚 Additional Resources](#Additional-Resources)
+8. [Additional Resources](#Additional-Resources)
 
 ---
 
@@ -169,7 +169,7 @@ Students write server code and see validation results from test containers:
 ![Server Code Validation](https://github.com/user-attachments/assets/beb774b1-2f21-479c-b5ce-2af3d84937a0)  
 
 ---
-## 📚 Additional Resources
+## Additional Resources
 
 This section contains links to supporting documentation and repositories that complement the **Educational Programming Platform**.
 
