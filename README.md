@@ -1,4 +1,4 @@
-
+![ex container details ](https://github.com/user-attachments/assets/f9bb5089-2679-482a-bac0-8405cea72fb1)
 # Overlay Lab  
 
 ![High-Level System Architecture](https://github.com/user-attachments/assets/7cc186c5-feec-4022-bf1a-f049cead6004)  
@@ -142,15 +142,17 @@ Homepage showing available exercises with difficulty levels and descriptions:
 
 **1. Exercise Overview**  
 Students select client-side exercises from the portal. The system provides server container details (IP/port) for connection.  
-![Client Exercise Interface](https://github.com/user-attachments/assets/dd73e656-1d3e-4f82-a620-9db1c79d1cf6)  
+![grcp example detials ](https://github.com/user-attachments/assets/0bf08e55-0b8e-4910-bd8c-45d54e9c6429)
+
 
 **2. Container Details**  
 Real-time container networking information including IP address (`10.1.0.2`), exposed port (`5015`), and status:  
-![Container Network Details](https://github.com/user-attachments/assets/d1e159b2-b11b-47e8-8c44-f2b0bf3b16d0)  
+![ex container details ](https://github.com/user-attachments/assets/e3b25a54-6df4-4048-b389-0121c79ffce1)
+
 
 **3. Code Implementation**  
 Students write client code to interact with the server container, with immediate feedback shown:  
-![Client Code and Response](https://github.com/user-attachments/assets/ede43f22-2337-4cc6-993e-78f2c23700fd)  
+![user's things](https://github.com/user-attachments/assets/ca840ebb-69c7-4084-a396-abc6de1f6fc6)
 
 ---
 
